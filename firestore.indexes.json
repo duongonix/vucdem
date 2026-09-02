@@ -1,0 +1,185 @@
+{
+	"indexes": [
+		{
+			"collectionGroup": "users",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "followersCount", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "voteScore", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "viewCount", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "category", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "communityId", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "authorId", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "comments",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "targetType", "order": "ASCENDING" },
+				{ "fieldPath": "targetId", "order": "ASCENDING" },
+				{ "fieldPath": "parentId", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "comments",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "parentId", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "ASCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "chapters",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "chapterNumber", "order": "ASCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "notifications",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "userId", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "notifications",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "userId", "order": "ASCENDING" },
+				{ "fieldPath": "isRead", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "communities",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "name", "order": "ASCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "reports",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+				{ "fieldPath": "status", "order": "ASCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "stories",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+				{ "fieldPath": "status", "order": "ASCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "posts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "authorId", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "stories",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "stories",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "authorId", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "stories",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "authorId", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "createdAt", "order": "DESCENDING" },
+				{ "fieldPath": "__name__", "order": "DESCENDING" }
+			]
+		}
+	],
+	"fieldOverrides": []
+}
