@@ -113,10 +113,9 @@ Shared voting component.
 Conceptual API:
 
 ```text
-score
-currentVote
-onUpvote
-onDownvote
+heartCount
+hasHearted
+onToggleHeart
 orientation
 ```
 

@@ -102,9 +102,8 @@ Images should:
 Primary interaction row:
 
 ```text
-Upvote
-Score
-Downvote
+Heart
+Heart count
 
 Comments
 

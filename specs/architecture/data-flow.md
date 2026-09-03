@@ -192,20 +192,14 @@ View counting is a separate flow and must follow its feature specification.
 Conceptual state machine:
 
 ```text
-Current vote: none
-Upvote
+Current heart: none
+Heart
 → +1
 
-Current vote: +1
-Upvote
+Current heart: +1
+Heart
 → none
-
-Current vote: -1
-Upvote
-→ +1
 ```
-
-Downvote behaves symmetrically.
 
 Data flow:
 

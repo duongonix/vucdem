@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { MessageCircleReply, ThumbsDown, ThumbsUp } from '@lucide/svelte';
+	import { Heart, MessageCircleReply } from '@lucide/svelte';
 	import { getCommentVote, setCommentVote } from '$lib/services/votes';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import type { VoteValue } from '$lib/types';
@@ -27,7 +27,7 @@
 			})
 			.catch(() => {});
 	});
-	async function vote(next: VoteValue) {
+	async function toggleHeart() {
 		if (!authStore.firebaseUser) {
 			location.href =
 				resolve('/auth/login') +
@@ -37,7 +37,7 @@
 		if (pending) return;
 		pending = true;
 		try {
-			const state = await setCommentVote(commentId, value === next ? 0 : next);
+			const state = await setCommentVote(commentId, value === 1 ? 0 : 1);
 			value = state.value;
 			score = state.score;
 		} finally {
@@ -51,15 +51,11 @@
 		class:text-red={value === 1}
 		class="inline-flex min-h-9 items-center gap-2 hover:text-red"
 		disabled={pending}
-		onclick={() => vote(1)}
-		aria-label="Thích bình luận"><ThumbsUp size={16} /> <span>{score}</span></button
-	>
-	<button
-		class:text-red={value === -1}
-		class="inline-flex min-h-9 items-center hover:text-red"
-		disabled={pending}
-		onclick={() => vote(-1)}
-		aria-label="Không thích bình luận"><ThumbsDown size={16} /></button
+		onclick={toggleHeart}
+		aria-label={value === 1 ? 'Bỏ tim bình luận' : 'Thả tim bình luận'}
+		aria-pressed={value === 1}
+		><Heart size={16} fill={value === 1 ? 'currentColor' : 'none'} />
+		<span>{score}</span></button
 	>
 	{#if canReply}<button
 			class="inline-flex min-h-9 items-center gap-2 uppercase hover:text-red"

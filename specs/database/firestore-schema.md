@@ -45,6 +45,7 @@ comments/
 communities/
 notifications/
 conversations/
+discussionMessages/
 reports/
 ```
 
@@ -107,6 +108,9 @@ firestore
 ├── conversations/
 │   └── {conversationId}/
 │       └── messages/{messageId}
+│
+├── discussionMessages/
+│   └── {messageId}
 │
 ├── reports/
 │   └── {reportId}

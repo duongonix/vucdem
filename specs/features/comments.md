@@ -16,8 +16,8 @@ The shared discussion system provides public Post, Story, and Chapter discussion
 - `POST /api/comments` creates a root or reply.
 - `PATCH /api/comments/{id}` edits own content.
 - `DELETE /api/comments/{id}` soft-removes own content.
-- `GET /api/comments/{id}/vote` returns the public score and the current User's vote when authenticated.
-- `POST /api/comments/{id}/vote` atomically creates, changes, or removes the current User's vote.
+- `GET /api/comments/{id}/vote` returns the public heart count and current User's heart state.
+- `POST /api/comments/{id}/vote` atomically adds or removes the current User's heart and accepts only `0 | 1`.
 
 Root pagination uses `createdAt DESC` plus document ID. Replies use `parentId` and `createdAt ASC`. A reply must share the parent's target. Discussion threads support exactly three levels (root plus two reply generations); the third level does not expose a reply action and the server rejects attempts to create a deeper level.
 
@@ -29,7 +29,7 @@ Create and remove operations run server transactions. Every published root or re
 
 Content is trimmed, required, and limited to 5,000 characters. Ownership, author snapshots, counters, status, target identity, and timestamps are server-controlled. Story comments require a publicly readable Story; Chapter comments require both a published Chapter and a publicly readable parent Story.
 
-The comment UI follows the gothic discussion reference: a wide thread column, a 304px rules sidebar on desktop, compact nested connectors capped at three visible levels, real vote actions, cursor pagination, and stacked rules below the discussion on smaller screens.
+The comment UI follows the gothic discussion reference: a wide thread column, a 304px rules sidebar on desktop, compact nested connectors capped at three visible levels, a single heart action with its real count, cursor pagination, and stacked rules below the discussion on smaller screens.
 
 ## States
 

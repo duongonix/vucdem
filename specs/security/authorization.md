@@ -11,3 +11,6 @@ resource ownership server-side. Direct Firestore client access is denied.
 Direct messages are server-mediated. Every conversation and message operation verifies that the
 persisted User is active and that their Firebase UID belongs to the conversation `participantIds`.
 The sender UID is always derived from the verified token, never accepted from request data.
+
+Public discussion chat is also server-mediated. Guests may read published room messages, while
+only active persisted Users may send. Author snapshots and timestamps are always server-derived.

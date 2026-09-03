@@ -255,6 +255,11 @@ Tags should:
 - Avoid empty values
 - Avoid duplicates
 
+While the author types, the editor requests a bounded server-side list of similar tags already used
+by public Posts or Stories. Suggestions are accent-insensitive, ranked by textual relevance and
+usage frequency, and may be clicked to add the normalized tag. The browser never downloads entire
+content collections.
+
 Exact limits:
 
 ```text
@@ -648,12 +653,11 @@ specs/features/voting.md
 Post detail should show:
 
 ```text
-Upvote
-Vote score
-Downvote
+Heart
+Heart count
 ```
 
-Active vote state must be visually distinguishable.
+Active heart state must be visually distinguishable.
 
 Do not rely exclusively on color for accessibility.
 
@@ -784,15 +788,18 @@ Avoid unnecessary repeated reads.
 
 # 41. Tags
 
-Clicking a Tag may open a search/discovery view.
+Clicking a Tag opens its canonical discovery page.
 
 Example:
 
 ```text
-/search?tag=bi-an
+/tag/bi-an
 ```
 
-Exact route behavior belongs to the Search specification.
+`/tag/[slug]` combines published Posts and public Stories carrying the exact normalized tag.
+
+Clicking a Post Category opens `/category/[slug]`, which lists only published Posts assigned to
+that administrator-managed category.
 
 ---
 

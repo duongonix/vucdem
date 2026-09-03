@@ -114,8 +114,7 @@ Typical User permissions:
 - Publish own content
 - Comment
 - Reply
-- Upvote
-- Downvote
+- Heart and unheart public Posts and Comments
 - Bookmark
 - Follow Users
 - Follow Stories

@@ -13,7 +13,7 @@ comments/{commentId}/votes/{uid}
 ## Canonical fields
 
 ```typescript
-type VoteValue = -1 | 1;
+type VoteValue = 1;
 
 type Vote = {
 	id: string; // derived UID
@@ -23,4 +23,7 @@ type Vote = {
 };
 ```
 
-Absence of a document means no vote; zero is not persisted. A User may only write their own vote document. Vote transitions and the target's trusted `voteScore` must be atomic and idempotent. Clients cannot set aggregate scores independently.
+Absence of a document means no heart; zero is not persisted. Reactions are mutated through trusted
+endpoints. Reaction transitions and the target's trusted `voteScore` heart count must be atomic and
+idempotent. Clients cannot set aggregate scores independently. New mutations reject `-1`; historic
+dislike documents are legacy data and are converted when their owner next reacts.

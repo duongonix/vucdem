@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { X } from '@lucide/svelte';
 	import { STORY_TAG_MAX_COUNT, STORY_TAG_MAX_LENGTH } from '$lib/validation/story';
+	import TagSuggestions from '$lib/components/tag/TagSuggestions.svelte';
 	let { tags = $bindable<string[]>([]) }: { tags?: string[] } = $props();
 	let value = $state('');
-	function add() {
-		const tag = value.trim().toLocaleLowerCase('vi-VN');
+	function add(candidate = value) {
+		const tag = candidate.trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi-VN');
 		if (
 			tag &&
 			tag.length <= STORY_TAG_MAX_LENGTH &&
@@ -18,21 +19,27 @@
 
 <div class="space-y-2">
 	<div class="flex gap-2">
-		<input
-			bind:value
-			onkeydown={(e) => {
-				if (e.key === 'Enter' || e.key === ',') {
-					e.preventDefault();
-					add();
-				}
-			}}
-			maxlength={STORY_TAG_MAX_LENGTH}
-			class="h-10 min-w-0 flex-1 border border-border bg-surface-2 px-3 text-sm text-text outline-none focus:border-red"
-			placeholder="Thêm thẻ…"
-		/><button
+		<div class="relative min-w-0 flex-1">
+			<input
+				bind:value
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ',') {
+						e.preventDefault();
+						add();
+					}
+				}}
+				maxlength={STORY_TAG_MAX_LENGTH}
+				class="h-10 w-full min-w-0 border border-border bg-surface-2 px-3 text-sm text-text outline-none focus:border-red"
+				placeholder="Thêm thẻ…"
+				aria-label="Thẻ truyện"
+				aria-autocomplete="list"
+			/>
+			<TagSuggestions query={value} selected={tags} onselect={(tag) => add(tag)} />
+		</div>
+		<button
 			type="button"
 			class="border border-border px-3 text-sm text-text-secondary hover:border-red"
-			onclick={add}>Thêm</button
+			onclick={() => add()}>Thêm</button
 		>
 	</div>
 	<div class="flex flex-wrap gap-2">

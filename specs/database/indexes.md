@@ -21,6 +21,8 @@ Phases 26–30 add:
 - `reports: status ASC, createdAt DESC` — private moderation queues.
 - `posts: tags ARRAY_CONTAINS, status ASC` — bounded exact-tag discovery.
 - `stories: tags ARRAY_CONTAINS, status ASC` — bounded exact-tag discovery.
+- `posts: tags ARRAY_CONTAINS, status ASC, createdAt DESC, __name__ DESC` — paginated Post tag pages.
+- `stories: tags ARRAY_CONTAINS, status ASC, createdAt DESC, __name__ DESC` — paginated Story tag pages.
 - `posts: authorId ASC, createdAt DESC, __name__ DESC` — owner profile content including drafts.
 - `stories: authorId ASC, createdAt DESC, __name__ DESC` — owner profile content including drafts.
 - `stories: authorId ASC, status ASC, createdAt DESC, __name__ DESC` — public Author Stories.

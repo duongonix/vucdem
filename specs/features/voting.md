@@ -1,26 +1,32 @@
-# Voting
+# Heart reactions
 
 ## Goal
 
-Authenticated Users can express one active Post vote: `+1`, `-1`, or no vote.
+Authenticated Users can express one heart reaction on a Post or Comment. The reaction is either
+active (`+1`) or absent; dislike is not supported.
 
 ## Data and API
 
-Votes are stored at `posts/{postId}/votes/{uid}`. Absence means no vote; zero is never persisted. `GET /api/posts/{id}/vote` returns `{ value, score }`. Authenticated `POST` accepts `{ value: -1 | 0 | 1 }`.
+Reactions retain the existing vote storage paths and `voteScore` aggregate field for compatibility.
+Absence means no heart and zero is never persisted. The Post and Comment vote endpoints return
+`{ value, score }`; authenticated mutation requests accept `{ value: 0 | 1 }` only.
 
-The trusted SvelteKit endpoint runs a Firestore transaction that reads the current vote and Post, persists the vote transition, and applies exactly `next - previous` to `voteScore`. Only published Posts are voteable.
+The trusted SvelteKit endpoint runs a Firestore transaction that reads the current reaction and
+target, persists the transition, and applies exactly `next - previous` to `voteScore`. Only public,
+published targets can receive hearts. Historic `-1` documents are exposed as an inactive legacy
+state and converted when that User next reacts.
 
 ## UI behavior
 
-`VoteControl` supports vertical Feed and horizontal detail/mobile presentation. Mutations are optimistic, duplicate clicks are disabled while pending, and failures restore both score and vote state. Guest interaction redirects to login with the current route as `redirect`.
+Post and Comment actions use one Heart control with its count beside it. A filled crimson heart and
+`aria-pressed` communicate the active state. Post mutations are optimistic, duplicate clicks are
+disabled while pending, and failures restore the count and reaction state. Guest interaction
+redirects to login with the current route as `redirect`.
 
 ## Acceptance criteria
 
-- All six transitions between none/up/down are idempotent.
-- Refresh loads the signed-in User's current vote.
-- The aggregate score cannot be supplied independently by the browser.
-- Failed writes visibly roll back.
-
-## Out of scope
-
-Story and Comment voting wait for their respective requested phases.
+- Heart and unheart transitions are idempotent.
+- Refresh loads the signed-in User's current heart state.
+- The aggregate count cannot be supplied independently by the browser.
+- Dislike is absent from the UI and rejected by mutation endpoints.
+- Failed Post writes visibly roll back.

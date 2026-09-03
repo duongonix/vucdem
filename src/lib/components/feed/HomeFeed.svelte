@@ -67,7 +67,7 @@
 						})
 					: null,
 				mode !== 'posts' && (reset || storyCursor)
-					? queryStories(reset ? undefined : (storyCursor ?? undefined))
+					? queryStories({ cursor: reset ? undefined : (storyCursor ?? undefined) })
 					: null
 			]);
 			if (current !== requestId) return;

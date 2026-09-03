@@ -16,13 +16,16 @@ export const GET: RequestHandler = async (event) => {
 	const post = await postRef.get();
 	if (!post.exists || post.get('status') !== 'published') error(404, 'Không tìm thấy bài viết.');
 	const vote = identity ? await postRef.collection('votes').doc(identity.uid).get() : null;
-	return json({ value: vote?.exists ? vote.get('value') : 0, score: post.get('voteScore') ?? 0 });
+	return json({
+		value: vote?.exists && vote.get('value') === 1 ? 1 : 0,
+		score: Math.max(0, Number(post.get('voteScore') ?? 0))
+	});
 };
 
 export const POST: RequestHandler = async (event) => {
 	const identity = await requireFirebaseUser(event);
 	const parsed = z
-		.object({ value: z.union([z.literal(-1), z.literal(0), z.literal(1)]) })
+		.object({ value: z.union([z.literal(0), z.literal(1)]) })
 		.safeParse(await event.request.json().catch(() => null));
 	if (!parsed.success) error(400, 'Giá trị bình chọn không hợp lệ.');
 	const postRef = getFirebaseAdminDb().collection('posts').doc(id(event.params.id));
@@ -37,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
 		if (!post.exists || post.get('status') !== 'published') error(404, 'Không tìm thấy bài viết.');
 		const previous = vote.exists ? Number(vote.get('value')) : 0;
 		const next = parsed.data.value;
-		score = Number(post.get('voteScore') ?? 0) + next - previous;
+		score = Math.max(0, Number(post.get('voteScore') ?? 0) + next - previous);
 		if (next === 0) {
 			if (vote.exists) transaction.delete(voteRef);
 		} else if (vote.exists)

@@ -5,6 +5,7 @@
 	import AppShell from '$lib/components/layout/AppShell.svelte';
 	import RealtimeToastWatcher from '$lib/components/toast/RealtimeToastWatcher.svelte';
 	import ToastHost from '$lib/components/toast/ToastHost.svelte';
+	import AudioPlay from '$lib/components/ui/AudioPlay.svelte';
 
 	let { children } = $props();
 </script>
@@ -16,6 +17,7 @@
 <AuthBootstrap />
 <RealtimeToastWatcher />
 <ToastHost />
+<AudioPlay />
 <a
 	href="#main-content"
 	class="sr-only z-toast bg-surface px-4 py-2 text-text focus:not-sr-only focus:fixed focus:top-2 focus:left-2"

@@ -44,7 +44,7 @@
 				{#each topics as topic (topic.id)}
 					<li class="grid grid-cols-[1rem_1fr] gap-2 text-sm">
 						<span class="font-editorial text-lg leading-5 text-red">#</span>
-						<a href={`/search?q=${encodeURIComponent(topic.name)}`} class="min-w-0 hover:text-red">
+						<a href={`/tag/${encodeURIComponent(topic.name)}`} class="min-w-0 hover:text-red">
 							<p class="truncate text-text">{topic.name}</p>
 							<p class="text-xs text-text-muted">{formatCount(topic.count)} nội dung</p>
 						</a>

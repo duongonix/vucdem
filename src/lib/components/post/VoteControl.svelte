@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { ArrowBigDown, ArrowBigUp } from '@lucide/svelte';
+	import { Heart } from '@lucide/svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { getPostVote, setPostVote } from '$lib/services/votes';
 	import type { VoteValue } from '$lib/types';
@@ -23,7 +23,7 @@
 				})
 				.catch(() => {});
 	});
-	async function vote(next: VoteValue) {
+	async function toggleHeart() {
 		if (!authStore.firebaseUser) {
 			location.href =
 				resolve('/auth/login') +
@@ -32,7 +32,7 @@
 		}
 		if (busy) return;
 		const previous = { value, score };
-		const target = value === next ? 0 : next;
+		const target = value === 1 ? 0 : 1;
 		value = target;
 		score += target - previous.value;
 		busy = true;
@@ -52,30 +52,25 @@
 </script>
 
 <div
-	class:flex-col={orientation === 'vertical'}
-	class="flex items-center justify-center gap-1"
-	aria-label="Bình chọn bài viết"
+	class="flex"
+	aria-label="Lượt thả tim bài viết"
 >
 	<button
 		class:text-red={value === 1}
-		class="p-1 text-text-muted hover:text-red disabled:opacity-50"
+		class="group place-items-center text-text-muted transition hover:scale-105 hover:text-red disabled:opacity-50"
 		disabled={busy}
-		aria-label="Bình chọn lên"
+		aria-label={value === 1 ? 'Bỏ tim bài viết' : 'Thả tim bài viết'}
 		aria-pressed={value === 1}
-		onclick={() => vote(1)}
-		><ArrowBigUp size={22} fill={value === 1 ? 'currentColor' : 'none'} /></button
+		onclick={toggleHeart}
+		><Heart
+			size={15}
+			strokeWidth={1.8}
+			fill={value === 1 ? 'currentColor' : 'none'}
+			class={`transition-transform ${value === 1 ? 'scale-100' : ''}`}
+		/></button
 	>
-	<strong class="min-w-10 text-center font-editorial text-lg font-medium text-text"
-		>{compactNumber(score)}</strong
-	>
-	<button
-		class:text-red={value === -1}
-		class="p-1 text-text-muted hover:text-red disabled:opacity-50"
-		disabled={busy}
-		aria-label="Bình chọn xuống"
-		aria-pressed={value === -1}
-		onclick={() => vote(-1)}
-		><ArrowBigDown size={22} fill={value === -1 ? 'currentColor' : 'none'} /></button
+	<span class="min-w-7 text-center text-xs font-medium text-text"
+		>{compactNumber(score)}</span
 	>
 </div>
-{#if message}<p class="mt-1 text-center text-xs text-error" role="status">{message}</p>{/if}
+{#if message}<p class="mt-1 text-xs text-error" role="status">{message}</p>{/if}

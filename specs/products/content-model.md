@@ -349,13 +349,12 @@ Canonical vote values:
 Conceptually:
 
 ```text
-No vote
+No heart
    │
-   ├── Upvote   → +1
-   └── Downvote → -1
+   └── Heart → +1
 ```
 
-A User can have at most one active vote per target.
+A User can have at most one active heart per target.
 
 Vote state transitions are defined in:
 

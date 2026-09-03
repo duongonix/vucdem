@@ -38,8 +38,7 @@ Users can:
 
 - Browse posts
 - Read posts
-- Upvote
-- Downvote
+- Heart and unheart
 - Comment
 - Reply
 - Bookmark

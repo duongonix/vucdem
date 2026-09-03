@@ -514,9 +514,9 @@ Images should:
 
 # 27. Missing Thumbnail
 
-Posts without thumbnails must still render correctly.
-
-The card should adapt its layout rather than showing a broken placeholder.
+Posts and Stories without uploaded thumbnails must still render correctly. Their media slot displays
+a shared 2:3, responsive HTML/CSS cover using the content title and the dark crimson editorial identity;
+it is a presentation fallback only and is never persisted as fake Cloudinary or Firestore media.
 
 ---
 
@@ -687,8 +687,7 @@ Icon-only buttons should have accessible labels.
 Examples:
 
 ```text
-Upvote
-Downvote
+Heart
 Bookmark
 Open comments
 ```

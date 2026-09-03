@@ -89,7 +89,7 @@ export const GET: RequestHandler = async (event) => {
 	const sortField =
 		sort === 'popular' ? 'voteScore' : sort === 'viewed' ? 'viewCount' : 'createdAt';
 	if (!['newest', 'popular', 'viewed'].includes(sort)) error(400, 'Kiểu sắp xếp không hợp lệ.');
-	const filtered = ['category', 'communityId', 'authorId'].some((field) =>
+	const filtered = ['category', 'tag', 'communityId', 'authorId'].some((field) =>
 		event.url.searchParams.has(field)
 	);
 	if (filtered && sort !== 'newest')
@@ -106,6 +106,8 @@ export const GET: RequestHandler = async (event) => {
 			query = query.where(field, '==', value);
 		}
 	}
+	const tag = event.url.searchParams.get('tag')?.trim();
+	if (tag) query = query.where('tags', 'array-contains', tag);
 	query = query.orderBy(sortField, 'desc').orderBy(FieldPath.documentId(), 'desc').limit(20);
 	const cursor = event.url.searchParams.get('cursor');
 	const decodedCursor = cursor ? decodePostCursor(cursor, sortField) : null;
@@ -122,7 +124,13 @@ export const GET: RequestHandler = async (event) => {
 		});
 	} catch (cause) {
 		const code = (cause as { code?: number | string })?.code;
-		if (code !== 9 && code !== '9' && code !== 'FAILED_PRECONDITION') throw cause;
+		if (
+			code !== 9 &&
+			code !== '9' &&
+			code !== 'FAILED_PRECONDITION' &&
+			code !== 'failed-precondition'
+		)
+			throw cause;
 	}
 
 	// Keep feeds usable while a newly declared composite index is still building or awaiting
@@ -137,7 +145,8 @@ export const GET: RequestHandler = async (event) => {
 	const matching = snapshot.docs.filter(
 		(document) =>
 			document.get('status') === 'published' &&
-			[...filters].every(([field, value]) => document.get(field) === value)
+			[...filters].every(([field, value]) => document.get(field) === value) &&
+			(!tag || (document.get('tags') as unknown[] | undefined)?.includes(tag))
 	);
 	const page = matching.slice(0, 20);
 	const last = page.at(-1);

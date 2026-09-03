@@ -35,12 +35,10 @@ function decodeCursor(value: string) {
 
 export const GET: RequestHandler = async ({ url }) => {
 	const db = getFirebaseAdminDb();
-	let query = db
-		.collection('stories')
-		.where('status', 'in', ['ongoing', 'completed', 'hiatus'])
-		.orderBy('createdAt', 'desc')
-		.orderBy('__name__', 'desc')
-		.limit(PAGE_SIZE);
+	const tag = url.searchParams.get('tag')?.trim();
+	let query = db.collection('stories').where('status', 'in', ['ongoing', 'completed', 'hiatus']);
+	if (tag) query = query.where('tags', 'array-contains', tag);
+	query = query.orderBy('createdAt', 'desc').orderBy('__name__', 'desc').limit(PAGE_SIZE);
 	const cursor = url.searchParams.get('cursor');
 	if (cursor) {
 		const [millis, id] = decodeCursor(cursor);
@@ -62,7 +60,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		const publicStatuses = new Set(['ongoing', 'completed', 'hiatus']);
 		const fallback = await db.collection('stories').limit(100).get();
 		const stories = fallback.docs
-			.filter((document) => publicStatuses.has(String(document.get('status'))))
+			.filter(
+				(document) =>
+					publicStatuses.has(String(document.get('status'))) &&
+					(!tag || (document.get('tags') as unknown[] | undefined)?.includes(tag))
+			)
 			.sort(
 				(a, b) => (b.get('createdAt')?.toMillis?.() ?? 0) - (a.get('createdAt')?.toMillis?.() ?? 0)
 			)

@@ -21,3 +21,7 @@ cleanup of the old public ID so the stored Chapter never points at a deliberatel
 Only the owner may load drafts, change metadata/status, or manage chapters. Chapters have immutable, monotonically assigned `chapterNumber`; removal is soft and numbers are not reused. A story may first become `ongoing` only when its metadata, cover, and at least one published chapter are valid.
 
 The manager exposes draft/publish chapter actions and story states `draft`, `ongoing`, `hiatus`, and `completed`. Unsupported reverse transitions are rejected by the server.
+
+Post and Story tag inputs share the same autocomplete. After the author starts typing, a debounced
+server request returns similar tags found on a bounded sample of public Posts and Stories. Clicking
+a suggestion adds it while preserving the editor's existing duplicate, length, and count limits.

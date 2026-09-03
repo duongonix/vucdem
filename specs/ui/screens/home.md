@@ -268,3 +268,7 @@ recent public content, with a tag counted at most once per content document. Sel
 search for that tag. Top Authors are active Users ranked by the trusted `followersCount` field, with
 real profile links, avatars, and follower totals. Loading, empty, and error states must not
 substitute fake values.
+
+Category links use `/category/[slug]` and render only matching published Posts. Tag links use
+`/tag/[slug]` and combine matching published Posts with public Stories. Both pages use cursor-based
+pagination and the standard Feed cards rather than client-side filtering.

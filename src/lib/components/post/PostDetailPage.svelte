@@ -95,9 +95,9 @@
 						<div
 							class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider text-red uppercase"
 						>
-							<span>{postCategoryLabel(post.category)}</span>{#if post.communityId}<span
-									>· Cộng đồng</span
-								>{/if}{#if post.status === 'draft'}<span
+							<a href={resolve('/category/[slug]', { slug: post.category })} class="hover:text-red"
+								>{postCategoryLabel(post.category)}</a
+							>{#if post.communityId}<span>· Cộng đồng</span>{/if}{#if post.status === 'draft'}<span
 									class="border border-warning px-2 py-0.5 text-warning">Bản nháp</span
 								>{/if}
 						</div>

@@ -12,8 +12,7 @@
 >
 	<BadgeCheck
 		class={size === 'sm' ? 'size-3.5' : 'size-5'}
-		fill="currentColor"
-		stroke="#061018"
+		
 		strokeWidth={2.4}
 	/>
 </span>

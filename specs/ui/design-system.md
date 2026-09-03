@@ -419,13 +419,13 @@ Typical vertical desktop layout:
 ↓
 ```
 
-Active Upvote:
+Active Heart:
 
 ```text
 crimson
 ```
 
-Active Downvote may use a distinct muted/cool state if defined later.
+The inactive Heart uses muted text; dislike is not part of the Post or Comment action model.
 
 Do not rely exclusively on color.
 

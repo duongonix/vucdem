@@ -23,6 +23,7 @@ export interface PostPage {
 export interface PostQueryOptions {
 	sort?: 'newest' | 'popular' | 'viewed';
 	category?: PostCategory;
+	tag?: string;
 	communityId?: string;
 	authorId?: string;
 	cursor?: string;

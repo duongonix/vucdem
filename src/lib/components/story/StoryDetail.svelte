@@ -89,8 +89,10 @@
 					{story.description}
 				</p>
 				<div class="mt-4 flex flex-wrap gap-2">
-					{#each story.tags as tag (tag)}<span
-							class="border border-border px-2 py-1 text-xs text-text-muted">#{tag}</span
+					{#each story.tags as tag (tag)}<a
+							href={`/tag/${encodeURIComponent(tag)}`}
+							class="border border-border px-2 py-1 text-xs text-text-muted hover:border-border-red hover:text-red"
+							>#{tag}</a
 						>{/each}
 				</div>
 				<div class="mt-6 flex flex-wrap gap-5 text-sm text-text-muted">

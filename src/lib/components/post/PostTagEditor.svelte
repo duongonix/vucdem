@@ -3,13 +3,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { normalizeTag, POST_TAG_MAX_COUNT, POST_TAG_MAX_LENGTH } from '$lib/validation/post';
+	import TagSuggestions from '$lib/components/tag/TagSuggestions.svelte';
 
 	let { tags = $bindable<string[]>([]) }: { tags?: string[] } = $props();
 	let value = $state('');
 	let errorMessage = $state('');
 
-	function add() {
-		const tag = normalizeTag(value);
+	function add(candidate = value) {
+		const tag = normalizeTag(candidate);
 		errorMessage = '';
 		if (!tag) return;
 		if (tag.length > POST_TAG_MAX_LENGTH) {
@@ -38,14 +39,18 @@
 
 <div>
 	<div class="flex gap-2">
-		<Input
-			bind:value
-			onkeydown={keydown}
-			maxlength={POST_TAG_MAX_LENGTH}
-			placeholder="bí ẩn, tâm linh…"
-			aria-label="Thẻ"
-		/>
-		<Button type="button" size="icon" variant="outline" onclick={add} aria-label="Thêm thẻ"
+		<div class="relative min-w-0 flex-1">
+			<Input
+				bind:value
+				onkeydown={keydown}
+				maxlength={POST_TAG_MAX_LENGTH}
+				placeholder="bí ẩn, tâm linh…"
+				aria-label="Thẻ"
+				aria-autocomplete="list"
+			/>
+			<TagSuggestions query={value} selected={tags} onselect={(tag) => add(tag)} />
+		</div>
+		<Button type="button" size="icon" variant="outline" onclick={() => add()} aria-label="Thêm thẻ"
 			><Plus class="size-4" /></Button
 		>
 	</div>

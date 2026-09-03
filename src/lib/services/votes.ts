@@ -16,7 +16,7 @@ async function parse(response: Response): Promise<PostVoteState> {
 	const body = (await response.json().catch(() => ({}))) as Partial<PostVoteState> & {
 		message?: string;
 	};
-	if (!response.ok || typeof body.score !== 'number' || ![-1, 0, 1].includes(body.value ?? 2))
+	if (!response.ok || typeof body.score !== 'number' || ![0, 1].includes(body.value ?? 2))
 		throw new Error(body.message ?? 'Không thể cập nhật bình chọn.');
 	return { value: body.value as VoteValue | 0, score: body.score };
 }

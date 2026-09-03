@@ -76,7 +76,7 @@
 				<li>
 					<a
 						class="flex min-h-10 items-center justify-between px-3 hover:bg-surface-hover hover:text-text"
-						href={`/?category=${encodeURIComponent(topic.id)}`}
+						href={`/category/${encodeURIComponent(topic.id)}`}
 						><span>{topic.name}</span><span class="size-1.5 bg-red-dark" aria-hidden="true"
 						></span></a
 					>

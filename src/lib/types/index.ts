@@ -10,6 +10,7 @@ export type {
 	InteractiveStoryEvent
 } from './interactive-story';
 export type { Conversation, DirectMessage, MessageParticipant, MessageStatus } from './message';
+export type { DiscussionMessage } from './discussion';
 export type { Notification, NotificationTargetType, NotificationType } from './notification';
 export type { ReaderPreferences, ReadingProgress } from './reading';
 export type { Post, PostCategory, PostStatus } from './post';

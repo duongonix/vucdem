@@ -17,15 +17,15 @@ export const GET: RequestHandler = async (event) => {
 		error(404, 'Không tìm thấy bình luận.');
 	const vote = identity ? await reference.collection('votes').doc(identity.uid).get() : null;
 	return json({
-		value: vote?.exists ? vote.get('value') : 0,
-		score: Number(comment.get('voteScore') ?? 0)
+		value: vote?.exists && vote.get('value') === 1 ? 1 : 0,
+		score: Math.max(0, Number(comment.get('voteScore') ?? 0))
 	});
 };
 
 export const POST: RequestHandler = async (event) => {
 	const identity = await requireFirebaseUser(event);
 	const parsed = z
-		.object({ value: z.union([z.literal(-1), z.literal(0), z.literal(1)]) })
+		.object({ value: z.union([z.literal(0), z.literal(1)]) })
 		.safeParse(await event.request.json().catch(() => null));
 	if (!parsed.success) error(400, 'Giá trị bình chọn không hợp lệ.');
 	const db = getFirebaseAdminDb();

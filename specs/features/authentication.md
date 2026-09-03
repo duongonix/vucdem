@@ -111,7 +111,7 @@ When a Guest attempts an authenticated action, the UI must provide a clear authe
 Examples:
 
 ```text
-Guest clicks Upvote
+Guest clicks Heart
 → request login
 ```
 

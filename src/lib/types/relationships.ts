@@ -1,6 +1,6 @@
 import type { FirestoreEntity, FirestoreTimestamp } from './firestore';
 
-export type VoteValue = -1 | 1;
+export type VoteValue = 1;
 export type VoteTargetType = 'post' | 'story' | 'comment';
 
 export interface Vote extends FirestoreEntity {

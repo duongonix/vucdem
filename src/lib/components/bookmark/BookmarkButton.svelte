@@ -45,7 +45,7 @@
 <span class="relative inline-flex"
 	><button
 		class:text-red={bookmarked}
-		class="inline-flex items-center gap-2 border border-black p-1 pr-4 pl-2 text-text-muted hover:text-yellow-500 disabled:opacity-50"
+		class="inline-flex items-center gap-2 border border-black p-1 pr-2 pl-2 text-text-muted hover:text-yellow-500 disabled:opacity-50"
 		disabled={busy}
 		aria-label={bookmarked ? 'Bỏ lưu nội dung' : 'Lưu nội dung'}
 		aria-pressed={bookmarked}

@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { BookOpen, Eye, Headphones, MessageCircle } from '@lucide/svelte';
 	import BookmarkButton from '$lib/components/bookmark/BookmarkButton.svelte';
+	import ContentCoverFallback from '$lib/components/content/ContentCoverFallback.svelte';
 	import type { Story } from '$lib/types';
 	import { cloudinaryThumbnail, compactNumber } from '$lib/utils/post';
 	import VerifiedBadge from '$lib/components/profile/VerifiedBadge.svelte';
@@ -49,8 +50,10 @@
 			<p class="mt-2 line-clamp-3 text-sm leading-6 text-text-secondary">{story.description}</p>
 		</a>
 		<div class="mt-4 flex flex-wrap gap-2">
-			{#each story.tags.slice(0, 3) as tag (tag)}<span
-					class="border border-border-red px-2.5 py-1 text-xs text-red-muted">{tag}</span
+			{#each story.tags.slice(0, 3) as tag (tag)}<a
+					href={resolve('/tag/[slug]', { slug: tag })}
+					class="border border-border-red px-2.5 py-1 text-xs text-red-muted hover:bg-red-muted/20 hover:text-red"
+					>#{tag}</a
 				>{/each}
 		</div>
 		<div class="mt-4 flex items-center gap-5 text-xs text-text-muted">
@@ -64,17 +67,17 @@
 			<span class="ml-auto"><BookmarkButton targetType="story" targetId={story.id} /></span>
 		</div>
 	</div>
-	{#if story.cover}<a
-			class="hidden border-l border-border p-4 sm:block"
-			href={resolve('/story/[slug]', { slug: story.slug })}
-			tabindex="-1"
-		>
-			<img
-				class="h-full min-h-44 w-full object-cover grayscale-[20%] transition group-hover:grayscale-0"
+	<a
+		class="hidden aspect-[2/3] self-center border-l border-border p-4 sm:block"
+		href={resolve('/story/[slug]', { slug: story.slug })}
+		tabindex="-1"
+	>
+		{#if story.cover}<img
+				class="size-full object-cover grayscale-[20%] transition group-hover:grayscale-0"
 				src={cloudinaryThumbnail(story.cover.url)}
 				alt={`Bìa truyện ${story.title}`}
 				loading="lazy"
 				decoding="async"
-			/>
-		</a>{/if}
+			/>{:else}<ContentCoverFallback title={story.title} type="story" compact />{/if}
+	</a>
 </article>

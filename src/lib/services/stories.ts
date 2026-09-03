@@ -85,9 +85,12 @@ export async function getStoryBySlug(slug: string): Promise<Story> {
 		await fetch(`/api/stories/slug/${encodeURIComponent(slug)}`, { headers: requestHeaders })
 	);
 }
-export async function queryStories(cursor?: string): Promise<StoryPage> {
+export async function queryStories(
+	options: { cursor?: string; tag?: string } = {}
+): Promise<StoryPage> {
 	const query = new URLSearchParams();
-	if (cursor) query.set('cursor', cursor);
+	if (options.cursor) query.set('cursor', options.cursor);
+	if (options.tag) query.set('tag', options.tag);
 	const response = await fetch(`/api/stories?${query}`);
 	const body = (await response.json().catch(() => ({}))) as {
 		stories?: SerializedStory[];
