@@ -101,9 +101,10 @@
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a
 				href={writeHref}
-				class="hidden min-h-11 items-center gap-2 rounded-full border border-red-dark bg-red-dark px-5 py-2 text-sm font-medium text-text hover:border-red hover:bg-red sm:inline-flex"
+				class="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full border border-red-dark bg-red-dark text-sm font-medium text-text hover:border-red hover:bg-red sm:min-h-11 sm:w-auto sm:px-5 sm:py-2"
+				aria-label="Đăng bài"
 			>
-				<Plus class="size-4" aria-hidden="true" /> Đăng
+				<Plus class="size-4" aria-hidden="true" /> <span class="hidden sm:inline">Đăng</span>
 			</a>
 		</div>
 	</div>

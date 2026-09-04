@@ -68,7 +68,7 @@
 	}
 </script>
 
-<div class="mx-auto w-full max-w-6xl py-6">
+<div class="mx-auto w-full max-w-6xl min-w-0 overflow-x-hidden py-6">
 	{#if loading}<p class="flex items-center gap-2 text-text-muted">
 			<LoaderCircle class="size-4 animate-spin" /> Đang mở bản thảo…
 		</p>{:else if !story}<p role="alert" class="text-error">
@@ -76,7 +76,7 @@
 		</p>{:else}<header
 			class="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between"
 		>
-			<div>
+			<div class="min-w-0">
 				<p class="text-xs tracking-[.2em] text-red uppercase">Xưởng truyện</p>
 				<h1 class="font-editorial text-4xl text-text">Quản lý tác phẩm</h1>
 				<p class="text-sm text-text-muted">
@@ -104,10 +104,12 @@
 				short={story.format === 'short'}
 				ondone={done}
 				oncancel={() => (editing = undefined)}
-			/>{:else}<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-				<section class="border border-border bg-surface p-5 sm:p-7">
-					<div class="mb-4 flex items-center justify-between">
-						<h2 class="font-editorial text-2xl text-text">
+			/>{:else}<div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+				<section class="min-w-0 border border-border bg-surface p-4 sm:p-7">
+					<div
+						class="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
+					>
+						<h2 class="min-w-0 font-editorial text-2xl break-words text-text">
 							{story.format === 'short' ? 'Nội dung truyện' : 'Các chương'}
 						</h2>
 						{#if story.format === 'serial'}<Button size="sm" onclick={() => (editing = null)}
@@ -115,18 +117,18 @@
 							>{/if}
 					</div>
 					{#if chapters.length}{#each chapters as chapter (chapter.id)}<article
-								class="flex items-center gap-3 border-t border-border py-4"
+								class="flex min-w-0 items-start gap-2 border-t border-border py-4 sm:gap-3"
 							>
-								<span class="w-8 font-editorial text-xl text-red"
+								<span class="w-7 shrink-0 font-editorial text-xl text-red sm:w-8"
 									>{String(chapter.chapterNumber).padStart(2, '0')}</span
 								>
 								<div class="min-w-0 flex-1">
-									<p class="flex items-center gap-2 truncate text-text">
+									<p class="flex min-w-0 items-start gap-2 text-text">
 										{#if chapter.contentFormat === 'audio'}<Headphones
 												class="size-4 shrink-0 text-red"
 											/>{:else if chapter.contentFormat === 'interactive'}<MessageCircle
 												class="size-4 shrink-0 text-red"
-											/>{/if}{chapter.title}
+											/>{/if}<span class="min-w-0 [overflow-wrap:anywhere]">{chapter.title}</span>
 									</p>
 									<p class="text-xs text-text-muted">
 										{chapter.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'} · {chapter.contentFormat ===

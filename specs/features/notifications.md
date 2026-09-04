@@ -4,6 +4,11 @@
 
 Notifications are private activity records created by trusted server mutations for comments, replies, follows, upvotes, and published story chapters. Self-notifications are suppressed and deterministic IDs are used for repeatable relation events where appropriate.
 
+Following a serialized Story creates a deterministic `follow` Notification for its author. When a
+new Chapter of that Story first becomes published, every current Story follower receives one
+deterministic `story_update` Notification. Short Stories cannot be followed and do not produce
+these follow/update events.
+
 `/notifications` requires authentication, orders newest first, supports marking one or all records read, and exposes loading, empty, and error states. The header displays the authenticated recipient's unread count. Only `isRead` and `readAt` may be changed through recipient-authorized endpoints.
 
 When notifications exist, the page header always shows the **Đã xem tất cả** control. It marks all

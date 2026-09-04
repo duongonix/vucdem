@@ -27,6 +27,7 @@ Phases 26–30 add:
 - `stories: authorId ASC, createdAt DESC, __name__ DESC` — owner profile content including drafts.
 - `stories: authorId ASC, status ASC, createdAt DESC, __name__ DESC` — public Author Stories.
 - `stories: status ASC, createdAt DESC, __name__ DESC` — newest published Story feed used by Home.
+- `stories: status ASC, viewCount DESC, __name__ DESC` — public Story ranking candidates for `/ranks`.
 
 `__name__ DESC` is explicit because cursor-paginated queries order by the document identifier as a deterministic tie-breaker. Omitting it creates a different composite index and causes Firestore `FAILED_PRECONDITION` errors.
 

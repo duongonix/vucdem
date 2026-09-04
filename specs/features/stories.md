@@ -22,6 +22,13 @@ one integer rating from 1 to 5 and may later replace it. Guests can view aggrega
 a star starts the existing login flow. Rating writes use a trusted transaction at
 `PUT /api/stories/{id}/rating`; clients cannot mutate aggregate fields directly.
 
+## View counting
+
+Opening a public Story detail records a trusted Story view. Opening a published Chapter records a
+Chapter view and also records a Story view when the same browser has not already viewed that Story
+within the one-hour deduplication window. Author views and repeated views within that window are not
+counted. Feed impressions never increment either counter.
+
 ## Story formats
 
 `serial` Stories contain one or more Chapters and follow the ongoing/hiatus/completed lifecycle.
@@ -33,7 +40,9 @@ Both formats support prose and audio. A short Story selects text or audio for it
 `short-story` Chapter. Every serialized Chapter independently selects text or audio, so a serial
 Story may aggregate to `contentFormat = mixed`. Detail and discovery surfaces show an audio or
 mixed badge and audio Chapter durations. Reading stays on the canonical Chapter route and retains
-the same comments, bookmarks, following, reporting, and navigation behavior.
+the same comments, bookmarks, reporting, and navigation behavior. Story following is available
+only for serialized Stories. Short Stories do not display or accept a follow relationship because
+they cannot publish later Chapters.
 
 ## Slugs
 

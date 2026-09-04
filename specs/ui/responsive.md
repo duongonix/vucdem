@@ -362,13 +362,15 @@ simply because the viewport is small.
 
 ## Mobile bottom navigation
 
-Below 900px, the persistent bottom navigation contains exactly four destinations in this order:
-Trang Chủ, Tìm Kiếm, Đăng Bài, and Trang Cá Nhân. The current route exclusively controls the active
-crimson gothic seal and its restrained animation; no destination remains permanently emphasized.
-Guest publishing and profile access use the existing authentication redirect, while authenticated
-profile navigation resolves the current username. The bar respects the device safe area and the
-application shell reserves enough bottom padding so it never obscures page actions. Motion must
-respect `prefers-reduced-motion`.
+Below 900px, primary navigation is available through the header drawer; there is no persistent
+bottom navigation. The header retains a compact publish button at every mobile width, showing its
+accessible plus icon on narrow screens and the `Đăng` label when space permits. Guest publishing
+uses the existing authentication redirect. Header controls remain compact enough to avoid
+horizontal overflow, and motion must respect `prefers-reduced-motion`.
+
+The mobile drawer adds `Bảng Xếp Hạng` to its discovery navigation and links it to `/ranks`, because
+the desktop header navigation is hidden at this viewport width. Its active state follows the current
+route like the other drawer destinations.
 
 Only secondary presentation may be reduced.
 

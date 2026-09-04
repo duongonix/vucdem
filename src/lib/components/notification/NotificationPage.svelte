@@ -22,6 +22,11 @@
 		story_update: 'đã đăng chương truyện mới',
 		mention: 'đã nhắc đến bạn'
 	};
+	function notificationCopy(notification: Notification): string {
+		if (notification.type === 'follow' && notification.targetType === 'story')
+			return 'đã theo dõi truyện của bạn';
+		return copy[notification.type] ?? 'đã tương tác với bạn';
+	}
 	function href(n: Notification) {
 		if (n.targetType === 'post') return `/post/${n.targetId}`;
 		if (n.targetType === 'story') return `/story/${n.targetId}`;
@@ -110,7 +115,7 @@
 						><Bell class="size-4 text-red" /></span
 					><span class="min-w-0 flex-1 text-sm text-text-secondary"
 						><strong class="text-text">{n.actorName}</strong>
-						{copy[n.type]}<span class="mt-1 block text-xs text-text-muted"
+						{notificationCopy(n)}<span class="mt-1 block text-xs text-text-muted"
 							>{n.createdAt.toDate().toLocaleString('vi-VN')}</span
 						></span
 					>{#if !n.isRead}<span class="mt-3 size-2 bg-red" aria-label="Chưa đọc"

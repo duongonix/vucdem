@@ -694,7 +694,8 @@ Document ID:
 uid
 ```
 
-This ensures one follow relationship per User per Story.
+This ensures one follow relationship per User per serialized Story. A Story with `format = short`
+must reject creation of this relationship.
 
 ---
 

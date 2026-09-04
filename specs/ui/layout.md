@@ -87,7 +87,8 @@ Contains:
 - Discovery navigation in this order: Trang Chủ (`/`), Thông Báo (`/notifications`), Tin Nhắn
   (`/messages`), Thảo Luận (`/discussion`), Trang Cá Nhân (`/u/{username}`), and Cài Đặt
   (`/settings`). Protected destinations use the existing login redirect for Guests. The active
-  destination is derived from the current route.
+  destination is derived from the current route. Notifications and Messages show a compact crimson
+  count badge when their authenticated unread count is greater than zero.
 - Categories
 - Communities/topics
 - Secondary content

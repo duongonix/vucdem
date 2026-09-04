@@ -3,9 +3,9 @@
 	import { BookOpen, Eye, Headphones, MessageCircle } from '@lucide/svelte';
 	import BookmarkButton from '$lib/components/bookmark/BookmarkButton.svelte';
 	import ContentCoverFallback from '$lib/components/content/ContentCoverFallback.svelte';
+	import AuthorMeta from '$lib/components/post/AuthorMeta.svelte';
 	import type { Story } from '$lib/types';
 	import { cloudinaryThumbnail, compactNumber } from '$lib/utils/post';
-	import VerifiedBadge from '$lib/components/profile/VerifiedBadge.svelte';
 	let { story }: { story: Story } = $props();
 </script>
 
@@ -13,18 +13,13 @@
 	class="group grid min-w-0 border border-border bg-surface transition-colors hover:border-border-red sm:grid-cols-[minmax(0,1fr)_11rem] lg:grid-cols-[minmax(0,1fr)_14rem]"
 >
 	<div class="min-w-0 p-4 sm:p-5">
-		<div class="flex items-center gap-2 text-xs text-text-muted">
-			<span
-				class="grid size-7 place-items-center rounded-full border border-border bg-surface-2 font-editorial text-red"
-				>{story.authorName.charAt(0)}</span
-			>
-			<a class="hover:text-red" href={resolve('/u/[username]', { username: story.authorUsername })}
-				>u/{story.authorUsername}</a
-			>{#if story.authorVerified}<VerifiedBadge size="sm" />{/if}
-			<span>·</span><time
-				>{(story.publishedAt ?? story.createdAt).toDate().toLocaleDateString('vi-VN')}</time
-			>
-		</div>
+		<AuthorMeta
+			name={story.authorName}
+			username={story.authorUsername}
+			avatarUrl={story.authorAvatarUrl}
+			verified={story.authorVerified}
+			date={(story.publishedAt ?? story.createdAt).toDate()}
+		/>
 		<a class="mt-3 block" href={resolve('/story/[slug]', { slug: story.slug })}>
 			<p class="mb-1 flex items-center gap-2 text-xs tracking-wider text-red uppercase">
 				{#if story.contentFormat === 'audio'}<Headphones

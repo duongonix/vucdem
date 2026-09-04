@@ -48,7 +48,7 @@
 					aria-hidden="true"
 				/>
 			</form>
-			<LeftSidebar />
+			<LeftSidebar showRankings />
 			{#if !isFocusedRoute}<div class="mt-8 border-t border-border pt-8">
 					<h2 class="mb-4 text-xs tracking-[0.14em] text-red uppercase">Khám phá thêm</h2>
 					<RightSidebar compact />

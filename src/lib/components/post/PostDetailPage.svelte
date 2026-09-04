@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { MessageCircle, MoreHorizontal, Pencil, Share2, Trash2 } from '@lucide/svelte';
+	import { Eye, MessageCircle, MoreHorizontal, Pencil, Share2, Trash2 } from '@lucide/svelte';
 	import BookmarkButton from '$lib/components/bookmark/BookmarkButton.svelte';
 	import ReportDialog from '$lib/components/report/ReportDialog.svelte';
 	import CommentSection from '$lib/components/comment/CommentSection.svelte';
 	import { getPost, removePost } from '$lib/services/posts';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { recordPostView } from '$lib/services/views';
 	import type { Post } from '$lib/types';
 	import {
 		cloudinaryThumbnail,
@@ -32,7 +33,14 @@
 		if (!authStore.initialized) return;
 		loading = true;
 		getPost(postId)
-			.then((value) => (post = value))
+			.then((value) => {
+				post = value;
+				void recordPostView(value.id)
+					.then((result) => {
+						if (post?.id === value.id) post = { ...post, viewCount: result.viewCount };
+					})
+					.catch(() => undefined);
+			})
 			.catch(
 				(cause) => (error = cause instanceof Error ? cause.message : 'Không thể tải bài viết.')
 			)
@@ -160,7 +168,10 @@
 				</div>{/if}
 			{#if post.tags.length}<div class="mt-8"><TagList tags={post.tags} /></div>{/if}
 			<div class="mt-8 flex flex-wrap items-center gap-4 border-y border-border py-4">
-				<VoteControl postId={post.id} initialScore={post.voteScore} orientation="horizontal" /><a
+				<VoteControl postId={post.id} initialScore={post.voteScore} orientation="horizontal" /><span
+					class="inline-flex items-center gap-2 text-sm text-text-muted"
+					><Eye size={18} /> {compactNumber(post.viewCount)} lượt đọc</span
+				><a
 					class="inline-flex items-center gap-2 text-sm text-text-muted hover:text-red"
 					href="#comments"><MessageCircle size={18} /> {compactNumber(post.commentCount)}</a
 				><BookmarkButton targetType="post" targetId={post.id} showLabel /><ReportDialog

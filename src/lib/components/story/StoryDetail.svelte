@@ -22,6 +22,7 @@
 	import { getReadingProgress } from '$lib/services/reading';
 	import type { ReadingProgress } from '$lib/types';
 	import VerifiedBadge from '$lib/components/profile/VerifiedBadge.svelte';
+	import { recordStoryView } from '$lib/services/views';
 	let { slug }: { slug: string } = $props();
 	let story = $state<Story | null>(null);
 	let chapters = $state<Chapter[]>([]);
@@ -31,6 +32,12 @@
 	onMount(async () => {
 		try {
 			story = await getStoryBySlug(slug);
+			const loadedStoryId = story.id;
+			void recordStoryView(loadedStoryId)
+				.then((result) => {
+					if (story?.id === loadedStoryId) story = { ...story, viewCount: result.viewCount };
+				})
+				.catch(() => undefined);
 			[chapters, readingProgress] = await Promise.all([
 				listChapters(story.id),
 				getReadingProgress(story.id).catch(() => null)
@@ -101,7 +108,7 @@
 						><Layers class="size-4" />{story.format === 'short'
 							? 'Truyện ngắn · 1 phần'
 							: `${story.chapterCount} chương`}</span
-					><span>{story.followerCount} người theo dõi</span>
+					>{#if story.format === 'serial'}<span>{story.followerCount} người theo dõi</span>{/if}
 				</div>
 				<StoryRating
 					storyId={story.id}
@@ -120,10 +127,10 @@
 								: story.contentFormat === 'interactive'
 									? 'Bắt đầu trải nghiệm'
 									: 'Đọc truyện'}</a
-						>{/if}<StoryFollowButton
-						storyId={story.id}
-						bind:count={story.followerCount}
-					/><BookmarkButton targetType="story" targetId={story.id} showLabel /><ReportDialog
+						>{/if}{#if story.format === 'serial'}<StoryFollowButton
+							storyId={story.id}
+							bind:count={story.followerCount}
+						/>{/if}<BookmarkButton targetType="story" targetId={story.id} showLabel /><ReportDialog
 						targetType="story"
 						targetId={story.id}
 					/>{#if authStore.user?.id === story.authorId}<a

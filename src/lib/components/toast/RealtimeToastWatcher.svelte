@@ -12,6 +12,10 @@
 		story_update: 'đã đăng chương truyện mới',
 		mention: 'đã nhắc đến bạn'
 	};
+	function notificationDescription(item: { type: string; targetType: string }): string {
+		if (item.type === 'follow' && item.targetType === 'story') return 'đã theo dõi truyện của bạn';
+		return notificationCopy[item.type] ?? 'đã tương tác với bạn';
+	}
 
 	$effect(() => {
 		if (authStore.status !== 'authenticated') return;
@@ -25,7 +29,7 @@
 						showToast({
 							kind: 'notification',
 							title: 'Thông báo mới',
-							description: `${item.actorName} ${notificationCopy[item.type] ?? 'đã tương tác với bạn'}`,
+							description: `${item.actorName} ${notificationDescription(item)}`,
 							href: '/notifications'
 						});
 					}

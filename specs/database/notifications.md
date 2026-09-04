@@ -34,4 +34,4 @@ Actor display fields are snapshots; `actorId` is canonical. Only `userId` may re
 
 Recipient feeds query `userId`, ordered by `createdAt DESC`; unread indicators additionally constrain `isRead == false`.
 
-Supported activity producers are trusted SvelteKit server endpoints. Deterministic records are used for follow and upvote events; comment/reply events receive unique IDs. Published chapters create one `story_update` record per story follower.
+Supported activity producers are trusted SvelteKit server endpoints. Deterministic records are used for follow and upvote events; comment/reply events receive unique IDs. Following a serialized Story creates a deterministic `follow` record for its author. Published chapters create one `story_update` record per current Story follower. Short Stories support neither relationship.

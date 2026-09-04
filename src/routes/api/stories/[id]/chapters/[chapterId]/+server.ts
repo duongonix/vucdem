@@ -45,6 +45,7 @@ export const PATCH: RequestHandler = async (event) => {
 	if (parsed.data.contentFormat === 'interactive')
 		assertInteractiveMedia(storyRef.id, chapterRef.id, parsed.data.interactive);
 	let firstPublication = false;
+	let serializedStory = false;
 	await db.runTransaction(async (transaction) => {
 		const [story, chapter] = await Promise.all([
 			transaction.get(storyRef),
@@ -52,6 +53,7 @@ export const PATCH: RequestHandler = async (event) => {
 		]);
 		if (!story.exists || story.get('authorId') !== identity.uid) error(403);
 		if (!chapter.exists || chapter.get('status') === 'removed') error(404);
+		serializedStory = story.get('format') !== 'short';
 		if (
 			story.get('format') === 'short' &&
 			['ongoing', 'hiatus', 'completed'].includes(String(story.get('status'))) &&
@@ -99,7 +101,7 @@ export const PATCH: RequestHandler = async (event) => {
 			updatedAt: now
 		});
 	});
-	if (firstPublication) {
+	if (firstPublication && serializedStory) {
 		const [followers, actor] = await Promise.all([
 			storyRef.collection('followers').get(),
 			db.collection('users').doc(identity.uid).get()

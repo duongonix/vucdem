@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- dynamic chapter routes */
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import {
 		ArrowLeft,
 		ChevronLeft,
@@ -21,6 +22,7 @@
 	import AudioPlayer from '$lib/components/audio/AudioPlayer.svelte';
 	import TextToSpeechPlayer from '$lib/components/speech/TextToSpeechPlayer.svelte';
 	import InteractiveStoryPlayer from './interactive/InteractiveStoryPlayer.svelte';
+	import { recordChapterView } from '$lib/services/views';
 	let { slug, number }: { slug: string; number: number } = $props();
 	let story = $state<Story | null>(null);
 	let chapters = $state<Chapter[]>([]);
@@ -39,6 +41,7 @@
 	let interactiveError = $state('');
 	let quoteStatus = $state('');
 	let chapterElement = $state<HTMLElement>();
+	const recordedChapters = new SvelteSet<string>();
 	function captureQuote() {
 		const selectionObject = getSelection();
 		if (!selectionObject?.anchorNode || !chapterElement?.contains(selectionObject.anchorNode)) {
@@ -110,6 +113,13 @@
 	const index = $derived(chapter ? chapters.findIndex((c) => c.id === chapter.id) : -1);
 	const previous = $derived(index > 0 ? chapters[index - 1] : null);
 	const next = $derived(index >= 0 && index < chapters.length - 1 ? chapters[index + 1] : null);
+	$effect(() => {
+		const currentStory = story;
+		const currentChapter = chapter;
+		if (!currentStory || !currentChapter || recordedChapters.has(currentChapter.id)) return;
+		recordedChapters.add(currentChapter.id);
+		void recordChapterView(currentStory.id, currentChapter.id).catch(() => undefined);
+	});
 	$effect(() => {
 		const currentStory = story;
 		const currentChapter = chapter;

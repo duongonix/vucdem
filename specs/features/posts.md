@@ -736,7 +736,9 @@ simply because a Post Card appeared in the Feed.
 
 The implementation should avoid counting every refresh as unlimited unique engagement.
 
-MVP may use a lightweight deduplication/throttling strategy.
+MVP uses `POST /api/views` as the trusted increment boundary. A Post detail view is counted at most
+once per browser per Post during a one-hour HTTP-only cookie window. Feed impressions and views by
+the Post owner do not increment the counter.
 
 Do not allow arbitrary:
 

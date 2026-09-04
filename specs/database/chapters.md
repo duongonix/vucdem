@@ -51,6 +51,10 @@ exact public ID `vucdem/stories/{storyId}/chapters/{chapterId}/audio`; `duration
 
 `chapterNumber` is a positive integer unique within a Story. `wordCount`, `viewCount`, and `commentCount` are non-negative trusted counters. Draft Chapters are owner-only; published Chapters are public only while their parent Story is publicly readable. Normal clients cannot change `storyId`, trusted counters, or moderation states arbitrarily. Chapter comments use the root Comment target ID `{storyId}:{chapterId}`.
 
+`viewCount` is incremented only through the trusted `/api/views` endpoint after both the Chapter and
+its parent Story are confirmed public. Author views and repeated browser views inside the one-hour
+deduplication window do not increment it.
+
 ## Relationships and indexes
 
 The parent Story owns Chapter lifecycle and `chapterCount`. Ordering uses `chapterNumber ASC`; uniqueness is enforced by the Chapter creation transaction or trusted service. No global root collection is introduced.

@@ -2,15 +2,26 @@
 	/* eslint-disable svelte/no-navigation-without-resolve -- profile destination is auth-dependent */
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Bell, House, MessageCircle, MessagesSquare, Settings, UserRound } from '@lucide/svelte';
+	import {
+		Bell,
+		House,
+		MessageCircle,
+		MessagesSquare,
+		Settings,
+		Trophy,
+		UserRound
+	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { listPostCategories } from '$lib/services/post-categories';
 	import { watchConversations } from '$lib/services/messages';
+	import { watchNotifications } from '$lib/services/notifications';
 	import type { PostCategoryDefinition } from '$lib/types';
+	let { showRankings = false }: { showRankings?: boolean } = $props();
 
 	let topics = $state<PostCategoryDefinition[]>([]);
 	let unreadMessages = $state(0);
+	let unreadNotifications = $state(0);
 	const profilePath = $derived(`/u/${authStore.user?.username ?? ''}`);
 	const profileHref = $derived(
 		authStore.status === 'authenticated'
@@ -22,6 +33,16 @@
 		{ label: 'Thông Báo', href: resolve('/notifications'), path: '/notifications', icon: Bell },
 		{ label: 'Tin Nhắn', href: resolve('/messages'), path: '/messages', icon: MessagesSquare },
 		{ label: 'Thảo Luận', href: resolve('/discussion'), path: '/discussion', icon: MessageCircle },
+		...(showRankings
+			? [
+					{
+						label: 'Bảng Xếp Hạng',
+						href: resolve('/ranks'),
+						path: '/ranks',
+						icon: Trophy
+					}
+				]
+			: []),
 		{ label: 'Trang Cá Nhân', href: profileHref, path: '/u/', icon: UserRound },
 		{ label: 'Cài Đặt', href: resolve('/settings'), path: '/settings', icon: Settings }
 	]);
@@ -36,13 +57,27 @@
 	$effect(() => {
 		if (authStore.status !== 'authenticated') {
 			unreadMessages = 0;
+			unreadNotifications = 0;
 			return;
 		}
-		return watchConversations(
+		const stopMessages = watchConversations(
 			(value) => (unreadMessages = value.unreadCount),
 			() => (unreadMessages = 0)
 		);
+		const stopNotifications = watchNotifications(
+			(value) => (unreadNotifications = value.unreadCount),
+			{ unread: true, onError: () => (unreadNotifications = 0) }
+		);
+		return () => {
+			stopMessages();
+			stopNotifications();
+		};
 	});
+	function unreadFor(path: string): number {
+		if (path === '/notifications') return unreadNotifications;
+		if (path === '/messages') return unreadMessages;
+		return 0;
+	}
 </script>
 
 <aside class="space-y-8" aria-label="Khám phá nội dung">
@@ -51,6 +86,7 @@
 		<nav class="grid gap-1" aria-label="Điều hướng khám phá">
 			{#each navigation as item (item.label)}
 				{@const Icon = item.icon}
+				{@const unread = unreadFor(item.path)}
 				<a
 					href={item.href}
 					aria-current={isActive(item.path) ? 'page' : undefined}
@@ -61,9 +97,11 @@
 					}`}
 				>
 					<Icon class={`size-4 ${isActive(item.path) ? 'text-red' : ''}`} aria-hidden="true" />
-					{item.label}{item.path === '/messages' && unreadMessages > 0
-						? ` (${unreadMessages > 99 ? '99+' : unreadMessages})`
-						: ''}
+					<span>{item.label}</span>
+					{#if unread > 0}<span
+							class="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-red px-1.5 text-[.65rem] leading-5 font-semibold text-white shadow-[0_0_12px_rgb(216_35_35/0.22)]"
+							aria-label={`${unread} mục chưa đọc`}>{unread > 99 ? '99+' : unread}</span
+						>{/if}
 				</a>
 			{/each}
 		</nav>
