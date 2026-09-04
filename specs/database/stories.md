@@ -1,5 +1,9 @@
 # Stories
 
+> Editorial pinning adds the trusted fields `isPinned: boolean`, `pinnedAt: Timestamp | null`,
+> and `pinnedBy: string | null`. They default to `false`/`null`, may only be changed through
+> the Admin server API, and only a public Story may be pinned.
+
 > Interactive format extension: Story `contentFormat` also accepts `interactive`. A serial Story containing chapters with different formats remains `mixed`. See `specs/database/interactive-stories.md`.
 
 This document defines the canonical Firestore schema for vucdem Stories.

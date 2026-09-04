@@ -1,5 +1,9 @@
 # Posts
 
+> Editorial pinning adds the trusted fields `isPinned: boolean`, `pinnedAt: Timestamp | null`,
+> and `pinnedBy: string | null`. They default to `false`/`null`, may only be changed through
+> the Admin server API, and only a published Post may be pinned.
+
 This document defines the canonical Firestore schema for vucdem Posts.
 
 A Post is standalone community content.

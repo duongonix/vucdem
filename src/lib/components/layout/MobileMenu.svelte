@@ -18,9 +18,10 @@
 			page.url.pathname.startsWith('/messages') ||
 			page.url.pathname.startsWith('/settings')
 	);
+	let open = $state(false);
 </script>
 
-<Dialog>
+<Dialog bind:open>
 	<DialogTrigger
 		class={`${buttonVariants({ variant: 'ghost', size: 'icon' })} size-11 min-[900px]:hidden`}
 		aria-label="Mở điều hướng"
@@ -48,7 +49,7 @@
 					aria-hidden="true"
 				/>
 			</form>
-			<LeftSidebar showRankings />
+			<LeftSidebar showRankings onNavigate={() => (open = false)} />
 			{#if !isFocusedRoute}<div class="mt-8 border-t border-border pt-8">
 					<h2 class="mb-4 text-xs tracking-[0.14em] text-red uppercase">Khám phá thêm</h2>
 					<RightSidebar compact />

@@ -1,5 +1,10 @@
 # Home Feed
 
+Immediately below the site-rules banner, Home displays administrator-curated content with
+two tabs: `Story` for pinned public Stories and `Feed` for pinned published Posts. Items use
+real Firestore data and are ordered by pin time. The entire section is hidden when both lists
+are empty.
+
 This document defines the Home Feed behavior of vucdem.
 
 ---

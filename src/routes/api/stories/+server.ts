@@ -142,7 +142,10 @@ export const POST: RequestHandler = async (event) => {
 			ratingAverage: 0,
 			createdAt: now,
 			updatedAt: now,
-			publishedAt: null
+			publishedAt: null,
+			isPinned: false,
+			pinnedAt: null,
+			pinnedBy: null
 		});
 		if (parsed.data.format === 'short') {
 			transaction.create(shortChapterRef, {

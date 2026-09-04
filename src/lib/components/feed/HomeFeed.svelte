@@ -5,6 +5,7 @@
 	import PostCard from '$lib/components/post/PostCard.svelte';
 	import StoryFeedCard from '$lib/components/story/StoryFeedCard.svelte';
 	import HomeRulesBanner from './HomeRulesBanner.svelte';
+	import PinnedContent from './PinnedContent.svelte';
 	import { queryPosts, type PostQueryOptions } from '$lib/services/posts';
 	import { queryStories } from '$lib/services/stories';
 	import type { Post, Story } from '$lib/types';
@@ -121,6 +122,7 @@
 >
 <section aria-labelledby="feed-heading">
 	<HomeRulesBanner />
+	<PinnedContent />
 	<div
 		class="mb-4 flex flex-col gap-4 border-b border-border pb-4 lg:flex-row lg:items-center lg:justify-between"
 	>

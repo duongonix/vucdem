@@ -20,4 +20,7 @@ export interface Post extends FirestoreEntity, TimestampedEntity, AuthorSnapshot
 	viewCount: number;
 	status: PostStatus;
 	publishedAt: FirestoreTimestamp | null;
+	isPinned: boolean;
+	pinnedAt: FirestoreTimestamp | null;
+	pinnedBy: string | null;
 }

@@ -12,7 +12,10 @@ export function serializePost(
 		...data,
 		createdAt: data.createdAt?.toMillis?.() ?? 0,
 		updatedAt: data.updatedAt?.toMillis?.() ?? 0,
-		publishedAt: data.publishedAt?.toMillis?.() ?? null
+		publishedAt: data.publishedAt?.toMillis?.() ?? null,
+		isPinned: data.isPinned === true,
+		pinnedAt: data.pinnedAt?.toMillis?.() ?? null,
+		pinnedBy: typeof data.pinnedBy === 'string' ? data.pinnedBy : null
 	};
 }
 

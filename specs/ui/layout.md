@@ -89,6 +89,8 @@ Contains:
   (`/settings`). Protected destinations use the existing login redirect for Guests. The active
   destination is derived from the current route. Notifications and Messages show a compact crimson
   count badge when their authenticated unread count is greater than zero.
+- Active administrators additionally see Quản Trị (`/admin`). Selecting any navigation or topic
+  destination closes the temporary mobile sidebar after navigation begins.
 - Categories
 - Communities/topics
 - Secondary content

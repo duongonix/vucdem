@@ -8,6 +8,7 @@
 		MessageCircle,
 		MessagesSquare,
 		Settings,
+		ShieldCheck,
 		Trophy,
 		UserRound
 	} from '@lucide/svelte';
@@ -17,7 +18,10 @@
 	import { watchConversations } from '$lib/services/messages';
 	import { watchNotifications } from '$lib/services/notifications';
 	import type { PostCategoryDefinition } from '$lib/types';
-	let { showRankings = false }: { showRankings?: boolean } = $props();
+	let {
+		showRankings = false,
+		onNavigate
+	}: { showRankings?: boolean; onNavigate?: () => void } = $props();
 
 	let topics = $state<PostCategoryDefinition[]>([]);
 	let unreadMessages = $state(0);
@@ -44,7 +48,17 @@
 				]
 			: []),
 		{ label: 'Trang Cá Nhân', href: profileHref, path: '/u/', icon: UserRound },
-		{ label: 'Cài Đặt', href: resolve('/settings'), path: '/settings', icon: Settings }
+		{ label: 'Cài Đặt', href: resolve('/settings'), path: '/settings', icon: Settings },
+		...(authStore.user?.role === 'admin'
+			? [
+					{
+						label: 'Quản Trị',
+						href: resolve('/admin'),
+						path: '/admin',
+						icon: ShieldCheck
+					}
+				]
+			: [])
 	]);
 	const isActive = (path: string) =>
 		path === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(path);
@@ -89,6 +103,7 @@
 				{@const unread = unreadFor(item.path)}
 				<a
 					href={item.href}
+					onclick={onNavigate}
 					aria-current={isActive(item.path) ? 'page' : undefined}
 					class={`flex min-h-11 items-center gap-3 border-l-2 px-3 text-sm transition-colors ${
 						isActive(item.path)
@@ -115,6 +130,7 @@
 					<a
 						class="flex min-h-10 items-center justify-between px-3 hover:bg-surface-hover hover:text-text"
 						href={`/category/${encodeURIComponent(topic.id)}`}
+						onclick={onNavigate}
 						><span>{topic.name}</span><span class="size-1.5 bg-red-dark" aria-hidden="true"
 						></span></a
 					>

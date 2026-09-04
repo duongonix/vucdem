@@ -1,5 +1,8 @@
 # Admin
 
+Admins may pin or unpin public Posts and Stories from Content management. This trusted server
+operation records `pinnedAt` and `pinnedBy`; attempts to pin non-public content are rejected.
+
 `/admin` is restricted to active persisted `admin` accounts. It provides report management
 and bounded lists of Users, Posts, Stories, Comments, and Communities.
 

@@ -63,3 +63,17 @@ export async function updateAdminResourceStatus(type: string, id: string, status
 	if (!r.ok)
 		throw new Error((await r.json().catch(() => ({}))).message ?? 'Không thể cập nhật nội dung.');
 }
+
+export async function updateAdminResourcePin(
+	type: 'posts' | 'stories',
+	id: string,
+	pinned: boolean
+) {
+	const r = await fetch(`/api/admin/resources/${type}/${id}`, {
+		method: 'PATCH',
+		headers: await headers(true),
+		body: JSON.stringify({ action: 'pin', pinned })
+	});
+	if (!r.ok)
+		throw new Error((await r.json().catch(() => ({}))).message ?? 'Không thể ghim nội dung.');
+}

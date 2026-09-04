@@ -4,10 +4,14 @@ import type { Post, PostCategory } from '$lib/types';
 import type { PostMutationInput } from '$lib/validation/post';
 import { collection, doc, Timestamp } from 'firebase/firestore';
 
-interface SerializedPost extends Omit<Post, 'createdAt' | 'updatedAt' | 'publishedAt'> {
+interface SerializedPost extends Omit<
+	Post,
+	'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt'
+> {
 	createdAt: number;
 	updatedAt: number;
 	publishedAt: number | null;
+	pinnedAt: number | null;
 }
 
 interface PostResponse {
@@ -34,7 +38,8 @@ function revive(value: SerializedPost): Post {
 		...value,
 		createdAt: Timestamp.fromMillis(value.createdAt),
 		updatedAt: Timestamp.fromMillis(value.updatedAt),
-		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt)
+		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt),
+		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt)
 	};
 }
 

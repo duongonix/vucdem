@@ -70,7 +70,10 @@ export const POST: RequestHandler = async (event) => {
 			status: parsed.data.status,
 			createdAt: timestamp,
 			updatedAt: timestamp,
-			publishedAt: parsed.data.status === 'published' ? timestamp : null
+			publishedAt: parsed.data.status === 'published' ? timestamp : null,
+			isPinned: false,
+			pinnedAt: null,
+			pinnedBy: null
 		});
 		if (parsed.data.status === 'published')
 			transaction.update(userRef, { postCount: FieldValue.increment(1), updatedAt: timestamp });

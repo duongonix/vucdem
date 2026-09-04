@@ -6,11 +6,14 @@
 		Flag,
 		LayoutList,
 		LoaderCircle,
+		Pin,
+		PinOff,
 		ShieldCheck,
 		Users
 	} from '@lucide/svelte';
 	import {
 		listAdminResources,
+		updateAdminResourcePin,
 		updateAdminResourceStatus,
 		updateAdminUser
 	} from '$lib/services/moderation';
@@ -70,6 +73,15 @@
 			await load(type);
 		} catch (r) {
 			errorMessage = r instanceof Error ? r.message : 'Không thể cập nhật.';
+		}
+	}
+	async function pinAction(id: string, pinned: boolean) {
+		if (!confirm(pinned ? 'Ghim nội dung này lên trang chủ?' : 'Bỏ ghim nội dung này?')) return;
+		try {
+			await updateAdminResourcePin(type as 'posts' | 'stories', id, pinned);
+			await load(type);
+		} catch (r) {
+			errorMessage = r instanceof Error ? r.message : 'Không thể cập nhật ghim.';
 		}
 	}
 	function statusOptions() {
@@ -133,7 +145,14 @@
 						>{#each items as item (String(item.id))}<tr class="border-t border-border"
 								><td class="max-w-48 truncate p-3 text-text-muted">{String(item.id)}</td><td
 									class="p-3 text-text"
-									>{String(item.displayName ?? item.title ?? item.name ?? '—')}</td
+									><span class="inline-flex items-center gap-2"
+										>{String(
+											item.displayName ?? item.title ?? item.name ?? '—'
+										)}{#if item.isPinned === true}<Pin
+												class="size-3.5 text-red"
+												aria-label="Đã ghim"
+											/>{/if}</span
+									></td
 								><td class="p-3 text-text-secondary">{String(item.status ?? item.role ?? '—')}</td
 								>{#if tab === 'users'}<td class="p-3"
 										><button
@@ -164,15 +183,24 @@
 													>suspended</option
 												><option value="banned">banned</option></select
 											>
-										</div>{:else}<select
-											aria-label="Trạng thái nội dung"
-											value={String(item.status)}
-											onchange={(e) => contentAction(String(item.id), e.currentTarget.value)}
-											class="field"
-											>{#each statusOptions() as status (status)}<option value={status}
-													>{status}</option
-												>{/each}</select
-										>{/if}</td
+										</div>{:else}<div class="flex items-center gap-2">
+											<select
+												aria-label="Trạng thái nội dung"
+												value={String(item.status)}
+												onchange={(e) => contentAction(String(item.id), e.currentTarget.value)}
+												class="field"
+												>{#each statusOptions() as status (status)}<option value={status}
+														>{status}</option
+													>{/each}</select
+											>{#if type === 'posts' || type === 'stories'}<button
+													class:pinned={item.isPinned === true}
+													class="pin-button inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-xs"
+													onclick={() => pinAction(String(item.id), item.isPinned !== true)}
+													>{#if item.isPinned === true}<PinOff class="size-4" /> Bỏ ghim{:else}<Pin
+															class="size-4"
+														/> Ghim{/if}</button
+												>{/if}
+										</div>{/if}</td
 								></tr
 							>{/each}</tbody
 					>
@@ -227,5 +255,15 @@
 		background: var(--color-surface-2);
 		padding: 0 0.4rem;
 		color: var(--color-text);
+	}
+	.pin-button {
+		border-color: var(--color-border);
+		color: var(--color-text-secondary);
+	}
+	.pin-button:hover,
+	.pin-button.pinned {
+		border-color: var(--color-border-red);
+		background: var(--color-red-muted);
+		color: var(--color-red-bright);
 	}
 </style>

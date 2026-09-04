@@ -25,6 +25,9 @@ export interface Story extends FirestoreEntity, TimestampedEntity, AuthorSnapsho
 	ratingSum: number;
 	ratingAverage: number;
 	publishedAt: FirestoreTimestamp | null;
+	isPinned: boolean;
+	pinnedAt: FirestoreTimestamp | null;
+	pinnedBy: string | null;
 }
 
 export interface Chapter extends FirestoreEntity, TimestampedEntity {

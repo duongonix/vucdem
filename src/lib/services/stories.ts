@@ -3,10 +3,14 @@ import { getFirestoreDb } from '$lib/firebase/firestore';
 import type { Story } from '$lib/types';
 import type { CreateStoryInput, StoryMetadataInput } from '$lib/validation/story';
 import { collection, doc, Timestamp } from 'firebase/firestore';
-interface SerializedStory extends Omit<Story, 'createdAt' | 'updatedAt' | 'publishedAt'> {
+interface SerializedStory extends Omit<
+	Story,
+	'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt'
+> {
 	createdAt: number;
 	updatedAt: number;
 	publishedAt: number | null;
+	pinnedAt: number | null;
 }
 interface StoryResponse {
 	story?: SerializedStory;
@@ -21,7 +25,8 @@ function revive(value: SerializedStory): Story {
 		...value,
 		createdAt: Timestamp.fromMillis(value.createdAt),
 		updatedAt: Timestamp.fromMillis(value.updatedAt),
-		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt)
+		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt),
+		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt)
 	};
 }
 async function headers() {
