@@ -18,10 +18,8 @@
 	import { watchConversations } from '$lib/services/messages';
 	import { watchNotifications } from '$lib/services/notifications';
 	import type { PostCategoryDefinition } from '$lib/types';
-	let {
-		showRankings = false,
-		onNavigate
-	}: { showRankings?: boolean; onNavigate?: () => void } = $props();
+	let { showRankings = false, onNavigate }: { showRankings?: boolean; onNavigate?: () => void } =
+		$props();
 
 	let topics = $state<PostCategoryDefinition[]>([]);
 	let unreadMessages = $state(0);

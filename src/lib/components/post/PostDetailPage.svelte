@@ -167,14 +167,21 @@
 						/>{/each}
 				</div>{/if}
 			{#if post.tags.length}<div class="mt-8"><TagList tags={post.tags} /></div>{/if}
-			<div class="mt-8 flex flex-wrap items-center gap-4 border-y border-border py-4">
-				<VoteControl postId={post.id} initialScore={post.voteScore} orientation="horizontal" /><span
-					class="inline-flex items-center gap-2 text-sm text-text-muted"
-					><Eye size={18} /> {compactNumber(post.viewCount)} lượt đọc</span
-				><a
-					class="inline-flex items-center gap-2 text-sm text-text-muted hover:text-red"
-					href="#comments"><MessageCircle size={18} /> {compactNumber(post.commentCount)}</a
-				><BookmarkButton targetType="post" targetId={post.id} showLabel /><ReportDialog
+			<div
+				class="detail-actions mt-8 flex flex-wrap items-center gap-5 border-b border-border py-2"
+			>
+				<VoteControl postId={post.id} initialScore={post.voteScore} orientation="horizontal" /><a
+					class="detail-stat"
+					href="#comments"
+					aria-label={`Xem ${compactNumber(post.commentCount)} bình luận`}
+					><MessageCircle size={18} strokeWidth={1.8} aria-hidden="true" />
+					{compactNumber(post.commentCount)}</a
+				><span
+					class="detail-stat detail-view"
+					aria-label={`${compactNumber(post.viewCount)} lượt đọc`}
+					><Eye size={18} strokeWidth={1.8} aria-hidden="true" />
+					{compactNumber(post.viewCount)}</span
+				><BookmarkButton targetType="post" targetId={post.id} minimal /><ReportDialog
 					targetType="post"
 					targetId={post.id}
 				/><button
@@ -212,3 +219,28 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.detail-stat {
+		display: inline-flex;
+		min-height: 2.5rem;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--color-text-secondary);
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+	a.detail-stat:hover {
+		color: var(--color-text);
+	}
+	a.detail-stat:focus-visible {
+		outline: 1px solid var(--color-red-dark);
+		outline-offset: 1px;
+	}
+	.detail-view {
+		cursor: default;
+	}
+</style>

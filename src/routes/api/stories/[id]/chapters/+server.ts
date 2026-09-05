@@ -4,35 +4,8 @@ import { getFirebaseAdminDb } from '$lib/server/firebase-admin';
 import { chapterInputSchema, countWords } from '$lib/validation/chapter';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
-import { actorSnapshot } from '$lib/server/notifications';
 import { assertCloudinaryAudioMetadata } from '$lib/server/media-authorization';
 import { assertInteractiveMedia, writeInteractiveContent } from '$lib/server/interactive-stories';
-
-async function notifyFollowers(storyId: string, chapterId: string, actorId: string) {
-	const db = getFirebaseAdminDb();
-	const [followers, actor] = await Promise.all([
-		db.collection('stories').doc(storyId).collection('followers').get(),
-		db.collection('users').doc(actorId).get()
-	]);
-	if (!actor.exists || followers.empty) return;
-	const batch = db.batch();
-	const snapshot = actorSnapshot(actor);
-	for (const follower of followers.docs) {
-		if (follower.id === actorId) continue;
-		batch.set(db.collection('notifications').doc(`story_update_${chapterId}_${follower.id}`), {
-			userId: follower.id,
-			actorId,
-			...snapshot,
-			type: 'story_update',
-			targetType: 'chapter',
-			targetId: `${storyId}:${chapterId}`,
-			isRead: false,
-			createdAt: FieldValue.serverTimestamp(),
-			readAt: null
-		});
-	}
-	await batch.commit();
-}
 
 export const GET: RequestHandler = async (event) => {
 	const identity = await optionalFirebaseUser(event);
@@ -74,6 +47,7 @@ export const POST: RequestHandler = async (event) => {
 		const chapterNumber =
 			Number(story.get('chapterSequence') ?? story.get('chapterCount') ?? 0) + 1;
 		const now = FieldValue.serverTimestamp();
+		const submitted = parsed.data.status === 'published';
 		transaction.create(chapterRef, {
 			storyId: storyRef.id,
 			chapterNumber,
@@ -96,12 +70,18 @@ export const POST: RequestHandler = async (event) => {
 					: null,
 			interactiveEventCount:
 				parsed.data.contentFormat === 'interactive' ? parsed.data.interactive.events.length : 0,
-			status: parsed.data.status,
+			status: 'draft',
+			moderationStatus: submitted ? 'pending' : 'not_submitted',
+			submissionVersion: submitted ? 1 : 0,
+			submittedAt: submitted ? now : null,
+			reviewedAt: null,
+			reviewedBy: null,
+			rejectionReason: null,
 			contentFormat: parsed.data.contentFormat,
 			audio: parsed.data.audio,
 			createdAt: now,
 			updatedAt: now,
-			publishedAt: parsed.data.status === 'published' ? now : null
+			publishedAt: null
 		});
 		if (parsed.data.contentFormat === 'interactive')
 			writeInteractiveContent(transaction, storyRef, chapterRef, parsed.data.interactive);
@@ -119,7 +99,5 @@ export const POST: RequestHandler = async (event) => {
 			updatedAt: now
 		});
 	});
-	if (parsed.data.status === 'published')
-		await notifyFollowers(storyRef.id, chapterRef.id, identity.uid);
 	return json({ chapter: serializeChapter(await chapterRef.get()) }, { status: 201 });
 };

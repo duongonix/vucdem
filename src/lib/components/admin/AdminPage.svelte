@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import {
 		BadgeCheck,
+		ClipboardCheck,
 		FileStack,
 		Flag,
 		LayoutList,
@@ -19,13 +20,22 @@
 	} from '$lib/services/moderation';
 	import ModerationPage from '$lib/components/moderation/ModerationPage.svelte';
 	import PostCategoryManager from './PostCategoryManager.svelte';
-	let tab = $state<'reports' | 'users' | 'content' | 'categories'>('reports');
+	import ApprovalQueue from './ApprovalQueue.svelte';
+	import { listApprovalQueue } from '$lib/services/approvals';
+	let tab = $state<'reports' | 'approvals' | 'users' | 'content' | 'categories'>('reports');
 	let type = $state('users');
 	let items = $state<Record<string, unknown>[]>([]);
 	let loading = $state(false);
 	let errorMessage = $state('');
+	let approvalCount = $state(0);
 	const tabs = [
 		{ id: 'reports' as const, label: 'Báo cáo', description: 'Hàng đợi kiểm duyệt', icon: Flag },
+		{
+			id: 'approvals' as const,
+			label: 'Phê duyệt',
+			description: 'Duyệt trước xuất bản',
+			icon: ClipboardCheck
+		},
 		{ id: 'users' as const, label: 'Người dùng', description: 'Vai trò và xác minh', icon: Users },
 		{
 			id: 'content' as const,
@@ -52,7 +62,18 @@
 			loading = false;
 		}
 	}
-	onMount(() => {});
+	onMount(() => {
+		void listApprovalQueue()
+			.then(
+				(queue) =>
+					(approvalCount =
+						queue.posts.length +
+						queue.shortStories.length +
+						queue.serialStories.length +
+						queue.serialChapters.length)
+			)
+			.catch(() => (approvalCount = 0));
+	});
 	async function userAction(
 		id: string,
 		field: 'role' | 'status' | 'verify',
@@ -101,7 +122,7 @@
 			Quản lý thành viên, kiểm duyệt nội dung và bảo vệ trật tự của cộng đồng.
 		</p>
 	</header>
-	<nav class="mb-7 grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Khu vực quản trị">
+	<nav class="mb-7 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="Khu vực quản trị">
 		{#each tabs as entry (entry.id)}{@const Icon = entry.icon}<button
 				class:active-tab={tab === entry.id}
 				class="admin-tab group relative flex min-h-20 items-center gap-3 overflow-hidden border border-border bg-surface px-4 text-left transition-colors hover:border-border-red"
@@ -114,14 +135,20 @@
 					class="tab-icon grid size-10 shrink-0 place-items-center border border-border bg-background text-text-muted"
 					><Icon class="size-5" /></span
 				><span
-					><strong class="block font-editorial text-lg text-text">{entry.label}</strong><small
-						class="text-xs text-text-muted">{entry.description}</small
-					></span
+					><strong class="flex items-center gap-2 font-editorial text-lg text-text"
+						>{entry.label}{#if entry.id === 'approvals' && approvalCount > 0}<span
+								class="grid min-w-5 place-items-center bg-red px-1 font-sans text-[.65rem] leading-5 text-white"
+								>{approvalCount > 99 ? '99+' : approvalCount}</span
+							>{/if}</strong
+					><small class="text-xs text-text-muted">{entry.description}</small></span
 				></button
 			>{/each}
 	</nav>
-	{#if tab === 'reports'}<ModerationPage />{:else if tab === 'categories'}<PostCategoryManager
-		/>{:else}<div class="mb-4 flex flex-wrap gap-2">
+	{#if tab === 'reports'}<ModerationPage />{:else if tab === 'approvals'}<ApprovalQueue
+			oncountchange={(count) => (approvalCount = count)}
+		/>{:else if tab === 'categories'}<PostCategoryManager />{:else}<div
+			class="mb-4 flex flex-wrap gap-2"
+		>
 			{#if tab === 'content'}{#each ['posts', 'stories', 'comments', 'communities'] as resource (resource)}<button
 						class:resource-active={type === resource}
 						class="resource-tab border border-border px-4 py-2 text-xs font-semibold tracking-wide text-text-secondary uppercase hover:border-red"

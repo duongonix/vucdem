@@ -73,7 +73,22 @@
 			<LoaderCircle class="size-4 animate-spin" /> Đang mở bản thảo…
 		</p>{:else if !story}<p role="alert" class="text-error">
 			{errorMessage || 'Không tìm thấy truyện.'}
-		</p>{:else}<header
+		</p>{:else}{#if story.moderationStatus === 'pending'}<div
+				class="mb-5 border border-border-red bg-red-muted/15 p-4"
+			>
+				<p class="font-semibold text-red">ĐANG CHỜ PHÊ DUYỆT</p>
+				<p class="mt-1 text-sm text-text-secondary">
+					Nội dung đang được quản trị viên xét duyệt và tạm thời bị khóa chỉnh sửa.
+				</p>
+			</div>{:else if story.moderationStatus === 'rejected'}<div
+				class="mb-5 border border-error/50 bg-error/5 p-4"
+			>
+				<p class="font-semibold text-error">BỊ TỪ CHỐI</p>
+				<p class="mt-1 text-sm text-text-secondary">
+					Phản hồi từ quản trị viên: {story.rejectionReason}
+				</p>
+			</div>{/if}
+		<header
 			class="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between"
 		>
 			<div class="min-w-0">
@@ -112,7 +127,10 @@
 						<h2 class="min-w-0 font-editorial text-2xl break-words text-text">
 							{story.format === 'short' ? 'Nội dung truyện' : 'Các chương'}
 						</h2>
-						{#if story.format === 'serial'}<Button size="sm" onclick={() => (editing = null)}
+						{#if story.format === 'serial'}<Button
+								size="sm"
+								onclick={() => (editing = null)}
+								disabled={story.moderationStatus === 'pending'}
 								><Plus class="size-4" /> Thêm chương</Button
 							>{/if}
 					</div>
@@ -131,8 +149,13 @@
 											/>{/if}<span class="min-w-0 [overflow-wrap:anywhere]">{chapter.title}</span>
 									</p>
 									<p class="text-xs text-text-muted">
-										{chapter.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'} · {chapter.contentFormat ===
-										'audio'
+										{chapter.moderationStatus === 'pending'
+											? 'Đang chờ duyệt'
+											: chapter.moderationStatus === 'rejected'
+												? 'Bị từ chối'
+												: chapter.status === 'published'
+													? 'Đã xuất bản'
+													: 'Bản nháp'} · {chapter.contentFormat === 'audio'
 											? `${Math.ceil((chapter.audio?.duration ?? 0) / 60)} phút`
 											: chapter.contentFormat === 'interactive'
 												? 'Nhập vai'
@@ -141,6 +164,8 @@
 								</div>
 								<button
 									onclick={() => (editing = chapter)}
+									disabled={chapter.moderationStatus === 'pending' ||
+										story.moderationStatus === 'pending'}
 									class="p-2 text-text-muted hover:text-text"
 									aria-label={story.format === 'short' ? 'Sửa nội dung truyện' : 'Sửa chương'}
 									><Edit3 class="size-4" /></button
@@ -155,7 +180,11 @@
 							Chưa có chương nào. Hãy viết tiếng gõ cửa đầu tiên.
 						</div>{/if}
 				</section>
-				<aside class="space-y-5 border border-border bg-surface p-5">
+				<fieldset
+					disabled={story.moderationStatus === 'pending'}
+					class:opacity-70={story.moderationStatus === 'pending'}
+					class="space-y-5 border border-border bg-surface p-5"
+				>
 					<StoryCoverUploader storyId={story.id} bind:cover={story.cover} /><label class="block"
 						><span class="label">Tên truyện</span><input
 							bind:value={story.title}
@@ -178,9 +207,14 @@
 					>{#if errorMessage}<p class="text-sm text-error">{errorMessage}</p>{/if}<Button
 						class="w-full"
 						onclick={saveStory}
-						disabled={pending}>{pending ? 'Đang lưu…' : 'Lưu thông tin'}</Button
+						disabled={pending || story.moderationStatus === 'pending'}
+						>{pending
+							? 'Đang lưu…'
+							: story.moderationStatus === 'rejected'
+								? 'Gửi phê duyệt lại'
+								: 'Lưu / gửi phê duyệt'}</Button
 					>
-				</aside>
+				</fieldset>
 			</div>{/if}{/if}
 </div>
 

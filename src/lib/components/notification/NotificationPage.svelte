@@ -20,14 +20,18 @@
 		follow: 'đã theo dõi bạn',
 		upvote: 'đã thích bài viết của bạn',
 		story_update: 'đã đăng chương truyện mới',
-		mention: 'đã nhắc đến bạn'
+		mention: 'đã nhắc đến bạn',
+		content_approved: 'đã phê duyệt nội dung của bạn',
+		content_rejected: 'đã gửi phản hồi kiểm duyệt'
 	};
 	function notificationCopy(notification: Notification): string {
+		if (notification.message) return notification.message;
 		if (notification.type === 'follow' && notification.targetType === 'story')
 			return 'đã theo dõi truyện của bạn';
 		return copy[notification.type] ?? 'đã tương tác với bạn';
 	}
 	function href(n: Notification) {
+		if (n.destination) return n.destination;
 		if (n.targetType === 'post') return `/post/${n.targetId}`;
 		if (n.targetType === 'story') return `/story/${n.targetId}`;
 		if (n.targetType === 'user') return `/u/${n.targetId}`;

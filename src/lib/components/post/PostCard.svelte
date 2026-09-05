@@ -14,8 +14,8 @@
 <article
 	class="group flex min-w-0 border border-border bg-surface transition-colors hover:border-border-red sm:grid-cols-[4.75rem_minmax(0,1fr)] lg:grid-cols-[4.75rem_minmax(0,1fr)_14rem]"
 >
-	<div class="flex flex-col flex-1">
-		<div class="flex min-w-0 flex-col p-4 sm:p-5 h-full">
+	<div class="flex flex-1 flex-col">
+		<div class="flex min-w-0 flex-1 flex-col p-4 pb-2 sm:p-5 sm:pb-3">
 			<div class="flex items-center justify-between gap-3">
 				<AuthorMeta
 					name={post.authorName}
@@ -44,15 +44,28 @@
 				/>
 			</div>
 		</div>
-		<div class="p-4 flex flex-1 items-center gap-2 text-xs text-text-muted flex-1">
-			<VoteControl postId={post.id} initialScore={post.voteScore} />
-			<span class="mr-4 flex items-center gap-1.5"
-				><Eye size={16} />{compactNumber(post.viewCount)}</span
-			><a
-				class="flex items-center gap-1.5 hover:text-red"
-				href={resolve('/post/[id]', { id: post.id })}
-				><MessageCircle size={16} />{compactNumber(post.commentCount)}</a
-			><span class="ml-auto"><BookmarkButton targetType="post" targetId={post.id} /></span>
+		<div
+			class="engagement-footer mt-auto flex min-h-13 items-center px-4 pb-1 text-text-muted sm:px-5"
+		>
+			<div class="engagement-cluster">
+				<VoteControl postId={post.id} initialScore={post.voteScore} compact />
+				<a
+					class="engagement-item"
+					href={resolve('/post/[id]', { id: post.id })}
+					aria-label={`Xem ${compactNumber(post.commentCount)} bình luận`}
+					><MessageCircle size={18} strokeWidth={1.8} aria-hidden="true" />{compactNumber(
+						post.commentCount
+					)}</a
+				>
+				<span
+					class="engagement-item engagement-view"
+					aria-label={`${compactNumber(post.viewCount)} lượt xem`}
+					><Eye size={18} strokeWidth={1.8} aria-hidden="true" />{compactNumber(
+						post.viewCount
+					)}</span
+				>
+			</div>
+			<span class="ml-auto"><BookmarkButton targetType="post" targetId={post.id} minimal /></span>
 		</div>
 	</div>
 	<a
@@ -68,3 +81,45 @@
 			/>{:else}<ContentCoverFallback title={post.title} type="post" compact />{/if}</a
 	>
 </article>
+
+<style>
+	.engagement-cluster {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		gap: 1.25rem;
+	}
+	.engagement-item {
+		display: inline-flex;
+		min-height: 2.5rem;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--color-text-secondary);
+		transition: color 160ms ease;
+	}
+	a.engagement-item:hover {
+		color: var(--color-text);
+	}
+	a.engagement-item:focus-visible {
+		outline: 1px solid var(--color-red-dark);
+		outline-offset: 4px;
+	}
+	.engagement-view {
+		cursor: default;
+	}
+	@media (max-width: 420px) {
+		.engagement-cluster {
+			gap: 0.9rem;
+		}
+		.engagement-footer {
+			padding-inline: 0.875rem;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.engagement-item {
+			transition: none;
+		}
+	}
+</style>

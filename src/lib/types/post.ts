@@ -1,12 +1,13 @@
 import type { AuthorSnapshot } from './author';
 import type { FirestoreEntity, FirestoreTimestamp, TimestampedEntity } from './firestore';
 import type { CloudinaryAsset } from './media';
+import type { ModerationFields } from './moderation';
 
 export type PostCategory = string;
 
 export type PostStatus = 'draft' | 'published' | 'hidden' | 'removed';
 
-export interface Post extends FirestoreEntity, TimestampedEntity, AuthorSnapshot {
+export interface Post extends FirestoreEntity, TimestampedEntity, AuthorSnapshot, ModerationFields {
 	title: string;
 	content: string;
 	excerpt: string;

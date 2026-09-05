@@ -5,10 +5,15 @@ import { Timestamp } from 'firebase/firestore';
 import { collection, doc } from 'firebase/firestore';
 import { getFirestoreDb } from '$lib/firebase/firestore';
 
-type Serialized = Omit<Chapter, 'createdAt' | 'updatedAt' | 'publishedAt'> & {
+type Serialized = Omit<
+	Chapter,
+	'createdAt' | 'updatedAt' | 'publishedAt' | 'submittedAt' | 'reviewedAt'
+> & {
 	createdAt: number;
 	updatedAt: number;
 	publishedAt: number | null;
+	submittedAt: number | null;
+	reviewedAt: number | null;
 };
 
 async function authHeaders(json = false): Promise<HeadersInit> {
@@ -27,7 +32,9 @@ function revive(chapter: Serialized): Chapter {
 		...chapter,
 		createdAt: Timestamp.fromMillis(chapter.createdAt),
 		updatedAt: Timestamp.fromMillis(chapter.updatedAt),
-		publishedAt: chapter.publishedAt ? Timestamp.fromMillis(chapter.publishedAt) : null
+		publishedAt: chapter.publishedAt ? Timestamp.fromMillis(chapter.publishedAt) : null,
+		submittedAt: chapter.submittedAt ? Timestamp.fromMillis(chapter.submittedAt) : null,
+		reviewedAt: chapter.reviewedAt ? Timestamp.fromMillis(chapter.reviewedAt) : null
 	};
 }
 async function parse(response: Response): Promise<Chapter> {

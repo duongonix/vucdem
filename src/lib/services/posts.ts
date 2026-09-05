@@ -6,12 +6,14 @@ import { collection, doc, Timestamp } from 'firebase/firestore';
 
 interface SerializedPost extends Omit<
 	Post,
-	'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt'
+	'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt' | 'submittedAt' | 'reviewedAt'
 > {
 	createdAt: number;
 	updatedAt: number;
 	publishedAt: number | null;
 	pinnedAt: number | null;
+	submittedAt: number | null;
+	reviewedAt: number | null;
 }
 
 interface PostResponse {
@@ -39,7 +41,9 @@ function revive(value: SerializedPost): Post {
 		createdAt: Timestamp.fromMillis(value.createdAt),
 		updatedAt: Timestamp.fromMillis(value.updatedAt),
 		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt),
-		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt)
+		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt),
+		submittedAt: value.submittedAt === null ? null : Timestamp.fromMillis(value.submittedAt),
+		reviewedAt: value.reviewedAt === null ? null : Timestamp.fromMillis(value.reviewedAt)
 	};
 }
 

@@ -1,5 +1,9 @@
 # Admin
 
+The primary **Phê duyệt** tab implements the workflow in `specs/features/content-approval.md` and
+contains Bài viết, Truyện ngắn and Truyện dài queues with pending counts, full review preview and
+approve/reject actions.
+
 Admins may pin or unpin public Posts and Stories from Content management. This trusted server
 operation records `pinnedAt` and `pinnedBy`; attempts to pin non-public content are rejected.
 

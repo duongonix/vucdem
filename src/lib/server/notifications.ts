@@ -1,6 +1,13 @@
 import { FieldValue } from 'firebase-admin/firestore';
 export type NotificationKind =
-	'comment' | 'reply' | 'follow' | 'upvote' | 'story_update' | 'mention';
+	| 'comment'
+	| 'reply'
+	| 'follow'
+	| 'upvote'
+	| 'story_update'
+	| 'mention'
+	| 'content_approved'
+	| 'content_rejected';
 export function createNotification(
 	transaction: FirebaseFirestore.Transaction,
 	db: FirebaseFirestore.Firestore,
@@ -13,6 +20,8 @@ export function createNotification(
 		type: NotificationKind;
 		targetType: 'user' | 'post' | 'story' | 'chapter' | 'comment';
 		targetId: string;
+		message?: string | null;
+		destination?: string | null;
 	}
 ) {
 	if (input.userId === input.actorId) return;

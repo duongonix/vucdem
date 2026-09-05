@@ -21,6 +21,14 @@ export function serializeStory(
 		publishedAt: data.publishedAt?.toMillis?.() ?? null,
 		isPinned: data.isPinned === true,
 		pinnedAt: data.pinnedAt?.toMillis?.() ?? null,
-		pinnedBy: typeof data.pinnedBy === 'string' ? data.pinnedBy : null
+		pinnedBy: typeof data.pinnedBy === 'string' ? data.pinnedBy : null,
+		moderationStatus:
+			data.moderationStatus ??
+			(['ongoing', 'completed', 'hiatus'].includes(data.status) ? 'approved' : 'not_submitted'),
+		submissionVersion: Number(data.submissionVersion ?? 0),
+		submittedAt: data.submittedAt?.toMillis?.() ?? null,
+		reviewedAt: data.reviewedAt?.toMillis?.() ?? null,
+		reviewedBy: typeof data.reviewedBy === 'string' ? data.reviewedBy : null,
+		rejectionReason: typeof data.rejectionReason === 'string' ? data.rejectionReason : null
 	};
 }

@@ -1,7 +1,14 @@
 import type { FirestoreEntity, FirestoreTimestamp } from './firestore';
 
 export type NotificationType =
-	'comment' | 'reply' | 'follow' | 'upvote' | 'story_update' | 'mention';
+	| 'comment'
+	| 'reply'
+	| 'follow'
+	| 'upvote'
+	| 'story_update'
+	| 'mention'
+	| 'content_approved'
+	| 'content_rejected';
 export type NotificationTargetType = 'user' | 'post' | 'story' | 'chapter' | 'comment';
 
 export interface Notification extends FirestoreEntity {
@@ -15,4 +22,6 @@ export interface Notification extends FirestoreEntity {
 	isRead: boolean;
 	createdAt: FirestoreTimestamp;
 	readAt: FirestoreTimestamp | null;
+	message?: string | null;
+	destination?: string | null;
 }

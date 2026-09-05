@@ -1,5 +1,9 @@
 # Chapters
 
+> Every serialized Chapter stores the moderation fields defined by
+> `specs/features/content-approval.md`. Author publication submits it for review; only approval
+> changes its publication status to `published`.
+
 > Interactive format extension: Chapter `contentFormat` accepts `interactive`; structured content is stored in the chapter's `interactiveEvents` subcollection and Story-level `characters` subcollection. See `specs/database/interactive-stories.md`.
 
 ## Purpose and path

@@ -1,6 +1,6 @@
 # Admin screen
 
-`/admin` uses the normal dark editorial shell with a restrained crimson control-panel treatment. The page begins with a compact administrative hero, followed by four high-contrast tab cards: Reports, Users, Content and Categories.
+`/admin` uses the normal dark editorial shell with a restrained crimson control-panel treatment. The page begins with a compact administrative hero, followed by high-contrast tab cards including Reports, Phê duyệt, Users, Content and Categories. Phê duyệt shows a count badge and three clearly active sub-tabs for Posts, short Stories and serialized Stories/Chapters.
 
 The active primary tab has a crimson baseline, dark-red surface and highlighted icon block. Content sub-tabs use a bordered active state. These states must remain visible without relying only on subtle text color.
 

@@ -50,6 +50,7 @@ export const POST: RequestHandler = async (event) => {
 			error(403, 'Bạn cần tham gia cộng đồng trước khi đăng bài.');
 		const avatar = user.get('avatar') as { url?: unknown } | null;
 		const timestamp = FieldValue.serverTimestamp();
+		const submitted = parsed.data.status === 'published';
 		transaction.create(postRef, {
 			authorId: identity.uid,
 			authorName: user.get('displayName'),
@@ -67,21 +68,20 @@ export const POST: RequestHandler = async (event) => {
 			voteScore: 0,
 			commentCount: 0,
 			viewCount: 0,
-			status: parsed.data.status,
+			status: 'draft',
+			moderationStatus: submitted ? 'pending' : 'not_submitted',
+			submissionVersion: submitted ? 1 : 0,
+			submittedAt: submitted ? timestamp : null,
+			reviewedAt: null,
+			reviewedBy: null,
+			rejectionReason: null,
 			createdAt: timestamp,
 			updatedAt: timestamp,
-			publishedAt: parsed.data.status === 'published' ? timestamp : null,
+			publishedAt: null,
 			isPinned: false,
 			pinnedAt: null,
 			pinnedBy: null
 		});
-		if (parsed.data.status === 'published')
-			transaction.update(userRef, { postCount: FieldValue.increment(1), updatedAt: timestamp });
-		if (parsed.data.status === 'published' && communityRef)
-			transaction.update(communityRef, {
-				postCount: FieldValue.increment(1),
-				updatedAt: timestamp
-			});
 	});
 	return json({ post: serializePost(await postRef.get()) }, { status: 201 });
 };

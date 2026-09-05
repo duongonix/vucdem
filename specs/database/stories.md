@@ -1,5 +1,8 @@
 # Stories
 
+> Story and Chapter approval follows `specs/features/content-approval.md`. Short Stories are
+> reviewed as one unit; serialized Chapters are reviewed independently.
+
 > Editorial pinning adds the trusted fields `isPinned: boolean`, `pinnedAt: Timestamp | null`,
 > and `pinnedBy: string | null`. They default to `false`/`null`, may only be changed through
 > the Admin server API, and only a public Story may be pinned.

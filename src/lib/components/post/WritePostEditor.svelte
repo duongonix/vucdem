@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { beforeNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { beforeNavigate } from '$app/navigation';
 	import { LoaderCircle, Save, Send } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -37,6 +36,11 @@
 	let pending = $state(false);
 	let errorMessage = $state('');
 	let successMessage = $state('');
+	let moderationStatus = $state<'not_submitted' | 'pending' | 'approved' | 'rejected'>(
+		'not_submitted'
+	);
+	let rejectionReason = $state<string | null>(null);
+	let submissionVersion = $state(0);
 	let mediaUploader = $state<{ isUploading(): boolean }>();
 
 	const meaningful = $derived(
@@ -60,6 +64,9 @@
 				thumbnail = post.thumbnail;
 				images = post.images;
 				communityId = post.communityId;
+				moderationStatus = post.moderationStatus;
+				rejectionReason = post.rejectionReason;
+				submissionVersion = post.submissionVersion;
 				saved = true;
 				dirty = false;
 			} else {
@@ -96,6 +103,10 @@
 	}
 
 	async function persist(status: 'draft' | 'published') {
+		if (moderationStatus === 'pending') {
+			errorMessage = 'Bài viết đang được xét duyệt và tạm thời không thể chỉnh sửa.';
+			return;
+		}
 		if (!postId) {
 			errorMessage = 'Chưa thể tạo ID bài viết. Hãy kiểm tra cấu hình Firebase.';
 			return;
@@ -119,9 +130,12 @@
 				? await updatePost(postId, input(status))
 				: await saveNewPost(postId, input(status));
 			saved = true;
+			moderationStatus = post.moderationStatus;
+			rejectionReason = post.rejectionReason;
+			submissionVersion = post.submissionVersion;
 			dirty = false;
 			if (status === 'published') {
-				await goto(resolve('/post/[id]', { id: post.id }));
+				successMessage = 'Nội dung đã được gửi và đang chờ quản trị viên phê duyệt.';
 			} else {
 				successMessage = 'Bản nháp đã được lưu.';
 			}
@@ -134,6 +148,20 @@
 </script>
 
 <div class="mx-auto w-full max-w-6xl py-5 sm:py-8">
+	{#if moderationStatus === 'pending'}<div
+			class="mb-5 border border-border-red bg-red-muted/15 p-4"
+		>
+			<p class="font-semibold text-red">ĐANG CHỜ PHÊ DUYỆT</p>
+			<p class="mt-1 text-sm text-text-secondary">
+				Nội dung sẽ được hiển thị công khai sau khi được quản trị viên phê duyệt. Bản gửi lần {submissionVersion}
+				đang được khóa chỉnh sửa.
+			</p>
+		</div>{:else if moderationStatus === 'rejected'}<div
+			class="mb-5 border border-error/50 bg-error/5 p-4"
+		>
+			<p class="font-semibold text-error">BỊ TỪ CHỐI</p>
+			<p class="mt-2 text-sm text-text-secondary">Phản hồi từ quản trị viên: {rejectionReason}</p>
+		</div>{/if}
 	<header class="mb-6 border-b border-border pb-5">
 		<p class="text-[0.68rem] font-semibold tracking-[0.25em] text-red uppercase">Phòng viết</p>
 		<div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -148,7 +176,11 @@
 		</div>
 	</header>
 
-	<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+	<fieldset
+		disabled={moderationStatus === 'pending'}
+		class:opacity-75={moderationStatus === 'pending'}
+		class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]"
+	>
 		<section class="border border-border bg-surface p-5 sm:p-7">
 			<label class="block"
 				><span class="sr-only">Tiêu đề bài viết</span><input
@@ -224,14 +256,22 @@
 					{successMessage}
 				</p>{/if}
 			<div class="grid gap-2">
-				<Button type="button" variant="outline" onclick={() => persist('draft')} disabled={pending}
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => persist('draft')}
+					disabled={pending || moderationStatus === 'pending'}
 					><Save class="size-4" /> Lưu bản nháp</Button
-				><Button type="button" onclick={() => persist('published')} disabled={pending}
+				><Button
+					type="button"
+					onclick={() => persist('published')}
+					disabled={pending || moderationStatus === 'pending'}
 					>{#if pending}<LoaderCircle class="size-4 animate-spin" />{:else}<Send
 							class="size-4"
-						/>{/if} Đăng bài</Button
+						/>{/if}
+					{moderationStatus === 'rejected' ? 'Gửi phê duyệt lại' : 'Gửi phê duyệt'}</Button
 				>
 			</div>
 		</aside>
-	</div>
+	</fieldset>
 </div>

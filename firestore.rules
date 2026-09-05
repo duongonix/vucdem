@@ -2,9 +2,10 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // All application persistence currently goes through authenticated SvelteKit
-    // server endpoints backed by Firebase Admin. The browser SDK is used only to
-    // allocate document IDs, so direct client reads/writes are intentionally denied.
+    // All application persistence, including moderation submission fields and
+    // moderationReviews audit records, goes through authenticated SvelteKit server
+    // endpoints backed by Firebase Admin. Authors cannot self-approve content and
+    // reviewers cannot be impersonated through a direct client write.
     match /{document=**} {
       allow read, write: if false;
     }

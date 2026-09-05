@@ -143,6 +143,12 @@ export const POST: RequestHandler = async (event) => {
 			createdAt: now,
 			updatedAt: now,
 			publishedAt: null,
+			moderationStatus: 'not_submitted',
+			submissionVersion: 0,
+			submittedAt: null,
+			reviewedAt: null,
+			reviewedBy: null,
+			rejectionReason: null,
 			isPinned: false,
 			pinnedAt: null,
 			pinnedBy: null
@@ -172,7 +178,13 @@ export const POST: RequestHandler = async (event) => {
 						: null,
 				interactiveEventCount:
 					parsed.data.contentFormat === 'interactive' ? parsed.data.interactive.events.length : 0,
-				status: 'published',
+				status: 'draft',
+				moderationStatus: 'not_submitted',
+				submissionVersion: 0,
+				submittedAt: null,
+				reviewedAt: null,
+				reviewedBy: null,
+				rejectionReason: null,
 				createdAt: now,
 				updatedAt: now,
 				publishedAt: now

@@ -8,3 +8,7 @@ Direct browser Firestore reads and writes are denied by `firestore.rules`. The b
 may allocate random document IDs locally; this does not access Firestore. If a future feature
 introduces direct client reads, its exact collection, fields, ownership, status visibility,
 counter protection, and tests must be specified before relaxing the default deny rule.
+
+Content approval fields and nested `moderationReviews` are therefore server-only. Authors submit
+through owner-authorized APIs, while approval/rejection requires the persisted active Admin role;
+no browser client can assign `approved`, `reviewedBy`, or `reviewedAt` directly.

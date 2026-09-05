@@ -12,6 +12,12 @@ export type {
 export type { Conversation, DirectMessage, MessageParticipant, MessageStatus } from './message';
 export type { DiscussionMessage } from './discussion';
 export type { Notification, NotificationTargetType, NotificationType } from './notification';
+export type {
+	ModerationDecision,
+	ModerationFields,
+	ModerationReview,
+	ModerationStatus
+} from './moderation';
 export type { ReaderPreferences, ReadingProgress } from './reading';
 export type { Post, PostCategory, PostStatus } from './post';
 export type { PostCategoryDefinition } from './post-category';

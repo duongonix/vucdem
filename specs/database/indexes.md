@@ -34,3 +34,7 @@ Phases 26–30 add:
 Sidebar discovery adds `users: status ASC, followersCount DESC` for the five active Users with the
 largest trusted follower counters. Category post totals use Firestore count aggregation and the
 existing single-field/composite Post indexes.
+
+Phase 45 adds a collection-group single-field index for `chapters.moderationStatus`. It powers the
+Admin approval queue across every Story. While this index is still building after deployment, the
+server uses a bounded per-Story fallback so the approval page does not fail with HTTP 500.

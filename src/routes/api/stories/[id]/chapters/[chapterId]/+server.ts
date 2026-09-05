@@ -4,7 +4,6 @@ import { getFirebaseAdminDb } from '$lib/server/firebase-admin';
 import { chapterInputSchema, countWords } from '$lib/validation/chapter';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
-import { actorSnapshot } from '$lib/server/notifications';
 import { assertCloudinaryAudioMetadata } from '$lib/server/media-authorization';
 import { assertInteractiveMedia, writeInteractiveContent } from '$lib/server/interactive-stories';
 
@@ -44,8 +43,6 @@ export const PATCH: RequestHandler = async (event) => {
 		);
 	if (parsed.data.contentFormat === 'interactive')
 		assertInteractiveMedia(storyRef.id, chapterRef.id, parsed.data.interactive);
-	let firstPublication = false;
-	let serializedStory = false;
 	await db.runTransaction(async (transaction) => {
 		const [story, chapter] = await Promise.all([
 			transaction.get(storyRef),
@@ -53,7 +50,8 @@ export const PATCH: RequestHandler = async (event) => {
 		]);
 		if (!story.exists || story.get('authorId') !== identity.uid) error(403);
 		if (!chapter.exists || chapter.get('status') === 'removed') error(404);
-		serializedStory = story.get('format') !== 'short';
+		if (chapter.get('moderationStatus') === 'pending')
+			error(409, 'Chương đang được xét duyệt. Hãy chờ quản trị viên phản hồi.');
 		if (
 			story.get('format') === 'short' &&
 			['ongoing', 'hiatus', 'completed'].includes(String(story.get('status'))) &&
@@ -61,7 +59,7 @@ export const PATCH: RequestHandler = async (event) => {
 		)
 			error(409, 'Không thể chuyển nội dung của truyện ngắn đã xuất bản về bản nháp.');
 		const now = FieldValue.serverTimestamp();
-		firstPublication = chapter.get('status') !== 'published' && parsed.data.status === 'published';
+		const submitted = parsed.data.status === 'published';
 		transaction.update(chapterRef, {
 			title: parsed.data.title,
 			content: parsed.data.content,
@@ -82,9 +80,15 @@ export const PATCH: RequestHandler = async (event) => {
 					: null,
 			interactiveEventCount:
 				parsed.data.contentFormat === 'interactive' ? parsed.data.interactive.events.length : 0,
-			status: parsed.data.status,
+			status: 'draft',
+			moderationStatus: submitted ? 'pending' : 'not_submitted',
+			submissionVersion: Number(chapter.get('submissionVersion') ?? 0) + (submitted ? 1 : 0),
+			submittedAt: submitted ? now : (chapter.get('submittedAt') ?? null),
+			reviewedAt: submitted ? null : (chapter.get('reviewedAt') ?? null),
+			reviewedBy: submitted ? null : (chapter.get('reviewedBy') ?? null),
+			rejectionReason: submitted ? null : (chapter.get('rejectionReason') ?? null),
 			updatedAt: now,
-			publishedAt: parsed.data.status === 'published' ? (chapter.get('publishedAt') ?? now) : null
+			publishedAt: chapter.get('publishedAt') ?? null
 		});
 		if (parsed.data.contentFormat === 'interactive')
 			writeInteractiveContent(
@@ -101,34 +105,6 @@ export const PATCH: RequestHandler = async (event) => {
 			updatedAt: now
 		});
 	});
-	if (firstPublication && serializedStory) {
-		const [followers, actor] = await Promise.all([
-			storyRef.collection('followers').get(),
-			db.collection('users').doc(identity.uid).get()
-		]);
-		if (actor.exists && !followers.empty) {
-			const batch = db.batch();
-			const snapshot = actorSnapshot(actor);
-			for (const follower of followers.docs) {
-				if (follower.id === identity.uid) continue;
-				batch.set(
-					db.collection('notifications').doc(`story_update_${chapterRef.id}_${follower.id}`),
-					{
-						userId: follower.id,
-						actorId: identity.uid,
-						...snapshot,
-						type: 'story_update',
-						targetType: 'chapter',
-						targetId: `${storyRef.id}:${chapterRef.id}`,
-						isRead: false,
-						createdAt: FieldValue.serverTimestamp(),
-						readAt: null
-					}
-				);
-			}
-			await batch.commit();
-		}
-	}
 	return json({ chapter: serializeChapter(await chapterRef.get()) });
 };
 

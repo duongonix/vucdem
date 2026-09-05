@@ -62,6 +62,8 @@ export const PATCH: RequestHandler = async (event) => {
 		if (!snapshot.exists) error(404, 'Không tìm thấy bài viết.');
 		if (snapshot.get('authorId') !== identity.uid) error(403, 'Bạn không thể sửa bài viết này.');
 		if (snapshot.get('status') === 'removed') error(409, 'Bài viết đã bị gỡ.');
+		if (!remove && snapshot.get('moderationStatus') === 'pending')
+			error(409, 'Bài viết đang được xét duyệt. Hãy chờ quản trị viên phản hồi.');
 		const timestamp = FieldValue.serverTimestamp();
 		if (remove) {
 			transaction.update(postRef, { status: 'removed', updatedAt: timestamp });
@@ -73,8 +75,8 @@ export const PATCH: RequestHandler = async (event) => {
 			return;
 		}
 		if (!parsed?.success) error(400, 'Bài viết không hợp lệ.');
-		const firstPublication =
-			snapshot.get('status') === 'draft' && parsed.data.status === 'published';
+		const submitted = parsed.data.status === 'published';
+		const version = Number(snapshot.get('submissionVersion') ?? 0) + (submitted ? 1 : 0);
 		transaction.update(postRef, {
 			title: parsed.data.title,
 			content: parsed.data.content,
@@ -84,12 +86,28 @@ export const PATCH: RequestHandler = async (event) => {
 			communityId: parsed.data.communityId,
 			thumbnail: parsed.data.thumbnail,
 			images: parsed.data.images,
-			status: parsed.data.status,
+			status: 'draft',
+			moderationStatus: submitted ? 'pending' : 'not_submitted',
+			submissionVersion: version,
+			submittedAt: submitted ? timestamp : (snapshot.get('submittedAt') ?? null),
+			reviewedAt: submitted ? null : (snapshot.get('reviewedAt') ?? null),
+			reviewedBy: submitted ? null : (snapshot.get('reviewedBy') ?? null),
+			rejectionReason: submitted ? null : (snapshot.get('rejectionReason') ?? null),
 			updatedAt: timestamp,
-			...(firstPublication ? { publishedAt: timestamp } : {})
+			...(snapshot.get('status') === 'published'
+				? { isPinned: false, pinnedAt: null, pinnedBy: null }
+				: {})
 		});
-		if (firstPublication)
-			transaction.update(userRef, { postCount: FieldValue.increment(1), updatedAt: timestamp });
+		if (snapshot.get('status') === 'published')
+			transaction.update(userRef, {
+				postCount: Math.max(0, Number(user.get('postCount') ?? 0) - 1),
+				updatedAt: timestamp
+			});
+		if (snapshot.get('status') === 'published' && snapshot.get('communityId'))
+			transaction.update(db.collection('communities').doc(snapshot.get('communityId')), {
+				postCount: FieldValue.increment(-1),
+				updatedAt: timestamp
+			});
 	});
 	return json({ post: serializePost(await postRef.get()) });
 };

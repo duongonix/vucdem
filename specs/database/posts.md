@@ -1,5 +1,9 @@
 # Posts
 
+> Content approval fields and review history follow `specs/features/content-approval.md` and
+> `specs/database/moderation-reviews.md`. A user publish action creates a pending private Post;
+> only Admin approval changes `status` to `published`.
+
 > Editorial pinning adds the trusted fields `isPinned: boolean`, `pinnedAt: Timestamp | null`,
 > and `pinnedBy: string | null`. They default to `false`/`null`, may only be changed through
 > the Admin server API, and only a published Post may be pinned.

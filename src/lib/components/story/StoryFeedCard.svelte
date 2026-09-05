@@ -12,7 +12,7 @@
 <article
 	class="group grid min-w-0 border border-border bg-surface transition-colors hover:border-border-red sm:grid-cols-[minmax(0,1fr)_11rem] lg:grid-cols-[minmax(0,1fr)_14rem]"
 >
-	<div class="min-w-0 p-4 sm:p-5">
+	<div class="flex min-h-full min-w-0 flex-col p-4 pb-2 sm:p-5 sm:pb-2">
 		<AuthorMeta
 			name={story.authorName}
 			username={story.authorUsername}
@@ -51,15 +51,30 @@
 					>#{tag}</a
 				>{/each}
 		</div>
-		<div class="mt-4 flex items-center gap-5 text-xs text-text-muted">
-			<span class="flex items-center gap-1.5"
-				><Eye size={16} />{compactNumber(story.viewCount)}</span
-			>
-			<span class="flex items-center gap-1.5"
-				><MessageCircle size={16} />{compactNumber(story.commentCount)}</span
-			>
-			<span>{story.format === 'short' ? '1 phần' : `${story.chapterCount} chương`}</span>
-			<span class="ml-auto"><BookmarkButton targetType="story" targetId={story.id} /></span>
+		<div
+			class="-mx-4 mt-auto -mb-2 flex min-h-13 items-center px-4 pt-1 text-text-muted sm:-mx-5 sm:px-5"
+		>
+			<div class="engagement-cluster">
+				<a
+					class="engagement-item"
+					href={resolve('/story/[slug]', { slug: story.slug })}
+					aria-label={`Xem ${compactNumber(story.commentCount)} bình luận`}
+					><MessageCircle size={18} strokeWidth={1.8} aria-hidden="true" />{compactNumber(
+						story.commentCount
+					)}</a
+				>
+				<span
+					class="engagement-item engagement-view"
+					aria-label={`${compactNumber(story.viewCount)} lượt xem`}
+					><Eye size={18} strokeWidth={1.8} aria-hidden="true" />{compactNumber(
+						story.viewCount
+					)}</span
+				>
+				<span class="story-parts"
+					>{story.format === 'short' ? '1 phần' : `${story.chapterCount} chương`}</span
+				>
+			</div>
+			<span class="ml-auto"><BookmarkButton targetType="story" targetId={story.id} minimal /></span>
 		</div>
 	</div>
 	<a
@@ -76,3 +91,45 @@
 			/>{:else}<ContentCoverFallback title={story.title} type="story" compact />{/if}
 	</a>
 </article>
+
+<style>
+	.engagement-cluster {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		gap: 1.25rem;
+	}
+	.engagement-item {
+		display: inline-flex;
+		min-height: 2.5rem;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--color-text-secondary);
+		transition: color 160ms ease;
+	}
+	a.engagement-item:hover {
+		color: var(--color-text);
+	}
+	a.engagement-item:focus-visible {
+		outline: 1px solid var(--color-red-dark);
+		outline-offset: 4px;
+	}
+	.engagement-view {
+		cursor: default;
+	}
+	.story-parts {
+		white-space: nowrap;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+	}
+	@media (max-width: 420px) {
+		.engagement-cluster {
+			gap: 0.9rem;
+		}
+		.story-parts {
+			display: none;
+		}
+	}
+</style>

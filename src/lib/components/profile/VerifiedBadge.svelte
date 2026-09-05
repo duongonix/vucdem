@@ -10,9 +10,5 @@
 	aria-label={label}
 	role="img"
 >
-	<BadgeCheck
-		class={size === 'sm' ? 'size-3.5' : 'size-5'}
-		
-		strokeWidth={2.4}
-	/>
+	<BadgeCheck class={size === 'sm' ? 'size-3.5' : 'size-5'} strokeWidth={2.4} />
 </span>

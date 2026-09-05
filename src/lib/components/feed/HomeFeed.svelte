@@ -149,11 +149,16 @@
 	</div>
 	{#if loading}<div class="grid gap-3" aria-label="Đang tải bài viết">
 			{#each [0, 1, 2, 3] as skeleton (skeleton)}<div
-					class="h-60 animate-pulse border border-border bg-surface"
+					class="flex h-60 animate-pulse flex-col border border-border bg-surface"
 				>
 					<div class="m-6 h-3 w-32 bg-surface-2"></div>
 					<div class="m-6 h-8 w-2/3 bg-surface-2"></div>
 					<div class="m-6 h-16 bg-surface-2"></div>
+					<div class="mt-auto flex gap-5 px-5 py-4">
+						<div class="h-3 w-12 bg-surface-2"></div>
+						<div class="h-3 w-12 bg-surface-2"></div>
+						<div class="h-3 w-12 bg-surface-2"></div>
+					</div>
 				</div>{/each}
 		</div>
 	{:else}

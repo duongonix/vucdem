@@ -1,5 +1,8 @@
 # Notifications
 
+Content review creates `content_approved` or `content_rejected` Notifications. These records may
+include a user-facing `message` and trusted `destination` to the relevant detail/editor route.
+
 ## Purpose and path
 
 Notifications are private recipient-owned activity records:

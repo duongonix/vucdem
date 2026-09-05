@@ -1,6 +1,7 @@
 import type { AuthorSnapshot } from './author';
 import type { FirestoreEntity, FirestoreTimestamp, TimestampedEntity } from './firestore';
 import type { AudioAsset, CloudinaryAsset } from './media';
+import type { ModerationFields } from './moderation';
 
 export type StoryStatus = 'draft' | 'ongoing' | 'completed' | 'hiatus' | 'hidden' | 'removed';
 export type StoryFormat = 'serial' | 'short';
@@ -8,7 +9,8 @@ export type ChapterStatus = 'draft' | 'published' | 'hidden' | 'removed';
 export type StoryContentFormat = 'text' | 'audio' | 'interactive' | 'mixed';
 export type ChapterContentFormat = 'text' | 'audio' | 'interactive';
 
-export interface Story extends FirestoreEntity, TimestampedEntity, AuthorSnapshot {
+export interface Story
+	extends FirestoreEntity, TimestampedEntity, AuthorSnapshot, ModerationFields {
 	title: string;
 	slug: string;
 	description: string;
@@ -30,7 +32,7 @@ export interface Story extends FirestoreEntity, TimestampedEntity, AuthorSnapsho
 	pinnedBy: string | null;
 }
 
-export interface Chapter extends FirestoreEntity, TimestampedEntity {
+export interface Chapter extends FirestoreEntity, TimestampedEntity, ModerationFields {
 	storyId: string;
 	chapterNumber: number;
 	title: string;

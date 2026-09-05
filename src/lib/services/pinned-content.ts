@@ -1,11 +1,16 @@
 import type { Post, Story } from '$lib/types';
 import { Timestamp } from 'firebase/firestore';
 
-type Serialized<T> = Omit<T, 'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt'> & {
+type Serialized<T> = Omit<
+	T,
+	'createdAt' | 'updatedAt' | 'publishedAt' | 'pinnedAt' | 'submittedAt' | 'reviewedAt'
+> & {
 	createdAt: number;
 	updatedAt: number;
 	publishedAt: number | null;
 	pinnedAt: number | null;
+	submittedAt: number | null;
+	reviewedAt: number | null;
 };
 
 function revive<T extends Post | Story>(value: Serialized<T>): T {
@@ -14,7 +19,9 @@ function revive<T extends Post | Story>(value: Serialized<T>): T {
 		createdAt: Timestamp.fromMillis(value.createdAt),
 		updatedAt: Timestamp.fromMillis(value.updatedAt),
 		publishedAt: value.publishedAt === null ? null : Timestamp.fromMillis(value.publishedAt),
-		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt)
+		pinnedAt: value.pinnedAt === null ? null : Timestamp.fromMillis(value.pinnedAt),
+		submittedAt: value.submittedAt === null ? null : Timestamp.fromMillis(value.submittedAt),
+		reviewedAt: value.reviewedAt === null ? null : Timestamp.fromMillis(value.reviewedAt)
 	} as T;
 }
 
