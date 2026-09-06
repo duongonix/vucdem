@@ -3,7 +3,7 @@
 	import { LoaderCircle, Save, Send } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import MarkdownEditor from '$lib/components/markdown/MarkdownEditor.svelte';
 	import { createPostId, getPost, saveNewPost, updatePost } from '$lib/services/posts';
 	import { listCommunities } from '$lib/services/communities';
 	import { listPostCategories } from '$lib/services/post-categories';
@@ -170,7 +170,7 @@
 					Kể lại điều đã xảy ra
 				</h1>
 				<p class="mt-1 text-sm text-text-muted">
-					Nội dung được lưu dưới dạng văn bản thuần, an toàn và dễ đọc.
+					Có thể dùng Markdown an toàn để tạo nhịp kể chuyện, trích dẫn và tiêu đề.
 				</p>
 			</div>
 		</div>
@@ -195,17 +195,13 @@
 					for="post-content"
 					class="mb-2 block text-xs font-semibold tracking-wider text-text-muted uppercase"
 					>Nội dung</label
-				><Textarea
+				><MarkdownEditor
 					id="post-content"
 					bind:value={content}
 					maxlength={POST_CONTENT_MAX_LENGTH}
-					class="min-h-[28rem] resize-y border-0 bg-transparent px-0 text-[1rem] leading-8 focus-visible:ring-0"
 					placeholder="Bắt đầu từ khoảnh khắc mọi thứ trở nên không bình thường…"
 				/>
 			</div>
-			<p class="mt-2 text-right text-xs text-text-muted">
-				{content.length.toLocaleString('vi-VN')} / {POST_CONTENT_MAX_LENGTH.toLocaleString('vi-VN')}
-			</p>
 		</section>
 
 		<aside class="space-y-6 border border-border bg-surface p-5 lg:sticky lg:top-24 lg:self-start">

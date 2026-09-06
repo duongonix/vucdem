@@ -31,7 +31,8 @@ Username reservation uses the normalized value as `usernames/{usernameNormalized
 ## Posts
 
 - Title: at most 180 trimmed characters; publication requires at least 5.
-- Content: plain text, at most 50,000 trimmed characters; publication requires at least 20.
+- Content: safe Markdown text, at most 50,000 trimmed characters; publication requires at least 20.
+- Markdown images, raw HTML tags, and links outside `http`, `https`, or `mailto` are invalid.
 - Excerpt: generated from punctuation-stripped plain text and capped at 240 characters.
 - Tags: at most 5 unique normalized tags, each 1–24 characters.
 - Category: one canonical `PostCategory`; arbitrary strings are rejected.
@@ -46,4 +47,6 @@ Browser validation provides immediate feedback. Cloudinary must also restrict th
 - Tags: at most 8 unique normalized tags, each 1–24 characters.
 - Drafts may be incomplete.
 - First publication requires a cover and at least one Chapter.
+- Text Chapter and short Story prose may include safe Markdown. Markdown images, raw HTML tags, and
+  links outside `http`, `https`, or `mailto` are invalid.
 - Slug bases are deterministic lowercase ASCII, at most 72 characters; collision suffixes are reserved atomically.

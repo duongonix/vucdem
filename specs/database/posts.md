@@ -274,9 +274,11 @@ Required:
 Yes
 ```
 
-Contains the canonical Post body.
+Contains the canonical Post body. The stored string may be plain text or safe Markdown.
 
-The exact rich-text storage format must be consistent across the editor and renderer.
+The supported Markdown subset is rendered by the application from this string. It allows headings,
+blockquotes, lists, emphasis, inline/fenced code, horizontal rules, and safe `http`, `https`, or
+`mailto` links. Markdown images, raw HTML, and unsafe link protocols are rejected.
 
 If the implementation later adopts structured editor JSON instead of plain text/string content, this specification must be updated before migration.
 
@@ -1035,10 +1037,9 @@ Cloudinary:
 specs/architecture/cloudinary-architecture.md
 ```
 
-For the MVP editor, `content` is stored as trimmed plain text. Rendering uses
-text content with preserved line breaks; arbitrary HTML is neither accepted nor
-stored. A structured rich-text schema requires a future explicit specification
-change.
+For the MVP editor, `content` is stored as trimmed text that may include the safe Markdown subset.
+Rendering escapes raw HTML and never renders Markdown images. A structured rich-text schema requires
+a future explicit specification change.
 
 Trusted moderation may store `moderatedBy`, `moderatedAt`, and a temporary
 `moderationPreviousStatus`. The temporary field preserves the pre-moderation state and is

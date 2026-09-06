@@ -37,6 +37,10 @@ The reading column remains centered and readable. Reader typography preferences,
 navigation, reading progress, quote sharing, and Chapter comments remain available. TTS does not
 modify Chapter content or any persistent application document.
 
+Text Chapters render the safe Markdown subset from the stored Chapter `content` string. Raw HTML is
+escaped, Markdown image syntax is unsupported, and unsafe links are rejected during authoring and
+trusted mutation validation. Plain-text legacy Chapters remain readable as normal paragraphs.
+
 ## Accessibility and responsive behavior
 
 Every control has a visible focus state and accessible name. Native buttons/selects support Tab,

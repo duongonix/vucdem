@@ -199,6 +199,11 @@ Post content is required for normal text Posts.
 
 The editor should support comfortable writing of medium-form content.
 
+Post content may be written as safe Markdown stored in the existing `content` string. The Markdown
+subset supports headings, blockquotes, ordered/unordered lists, emphasis, inline/fenced code,
+horizontal rules, and safe `http`, `https`, or `mailto` links. Markdown image syntax, raw HTML, and
+unsafe link protocols are rejected by validation and must not be rendered as active content.
+
 The storage format must remain consistent between:
 
 ```text

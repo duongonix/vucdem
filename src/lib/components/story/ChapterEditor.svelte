@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Check, LoaderCircle, Save, X } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import MarkdownEditor from '$lib/components/markdown/MarkdownEditor.svelte';
 	import {
 		createChapter,
 		createChapterId,
@@ -182,12 +182,15 @@
 			placeholder="Tiêu đề chương"
 		/>{/if}
 	<div class="mt-6"><StoryContentFormatSelector bind:value={contentFormat} /></div>
-	{#if contentFormat === 'text'}<Textarea
-			bind:value={content}
-			maxlength={CHAPTER_CONTENT_MAX_LENGTH}
-			class="mt-6 min-h-[28rem] bg-background px-5 py-4 text-base leading-8"
-			placeholder="Bóng tối bắt đầu cựa mình…"
-		/>
+	{#if contentFormat === 'text'}<div class="mt-6">
+			<MarkdownEditor
+				id="chapter-content"
+				bind:value={content}
+				maxlength={CHAPTER_CONTENT_MAX_LENGTH}
+				minHeight="28rem"
+				placeholder="Bóng tối bắt đầu cựa mình…"
+			/>
+		</div>
 		<p class="mt-2 text-right text-xs text-text-muted">
 			{content.trim() ? content.trim().split(/\s+/).length : 0} từ
 		</p>{:else if contentFormat === 'audio'}<div class="mt-6">

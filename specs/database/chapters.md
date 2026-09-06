@@ -47,7 +47,10 @@ type Chapter = {
 };
 ```
 
-`contentFormat = text` requires prose in `content` and stores `audio = null`.
+`contentFormat = text` requires prose in `content` and stores `audio = null`. The prose string may
+be plain text or safe Markdown. Supported Markdown is limited to headings, blockquotes, lists,
+emphasis, inline/fenced code, horizontal rules, and safe `http`, `https`, or `mailto` links.
+Markdown images, raw HTML, and unsafe link protocols are rejected.
 `contentFormat = audio` requires an owned Cloudinary audio asset and stores an empty prose body.
 Existing Chapters without these fields are interpreted as text Chapters. Audio assets use the
 exact public ID `vucdem/stories/{storyId}/chapters/{chapterId}/audio`; `duration` is seconds and

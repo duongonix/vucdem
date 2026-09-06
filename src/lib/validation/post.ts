@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { cloudinaryAssetSchema } from './media';
+import {
+	assertSafeMarkdown,
+	MARKDOWN_UNSUPPORTED_MESSAGE,
+	markdownToPlainText
+} from '$lib/markdown/safe-markdown';
 
 export const POST_TITLE_MAX_LENGTH = 180;
 export const POST_CONTENT_MAX_LENGTH = 50_000;
@@ -21,7 +26,11 @@ export const postTagsSchema = z
 export const postMutationSchema = z
 	.object({
 		title: z.string().trim().max(POST_TITLE_MAX_LENGTH),
-		content: z.string().trim().max(POST_CONTENT_MAX_LENGTH),
+		content: z
+			.string()
+			.trim()
+			.max(POST_CONTENT_MAX_LENGTH)
+			.refine((value) => !assertSafeMarkdown(value), MARKDOWN_UNSUPPORTED_MESSAGE),
 		category: postCategorySchema,
 		tags: postTagsSchema,
 		communityId: z.string().trim().min(1).max(256).nullable(),
@@ -41,12 +50,14 @@ export function validatePublishablePost(input: PostMutationInput): string[] {
 	const errors: string[] = [];
 	if (input.title.trim().length < 5) errors.push('Tiêu đề cần ít nhất 5 ký tự.');
 	if (input.content.trim().length < 20) errors.push('Nội dung cần ít nhất 20 ký tự.');
+	const markdownIssue = assertSafeMarkdown(input.content);
+	if (markdownIssue) errors.push(markdownIssue);
 	if (!input.category.trim()) errors.push('Danh mục không hợp lệ.');
 	return errors;
 }
 
 export function generatePostExcerpt(content: string): string {
-	const plain = content
+	const plain = markdownToPlainText(content)
 		.replace(/[^\p{L}\p{N}\s]/gu, ' ')
 		.replace(/\s+/g, ' ')
 		.trim();

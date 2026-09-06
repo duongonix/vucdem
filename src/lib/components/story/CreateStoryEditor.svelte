@@ -4,6 +4,7 @@
 	import { Check, LoaderCircle, Save } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
+	import MarkdownEditor from '$lib/components/markdown/MarkdownEditor.svelte';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { createStory, createStoryId } from '$lib/services/stories';
 	import type { CloudinaryAsset, InteractiveStoryContent } from '$lib/types';
@@ -227,10 +228,11 @@
 						<span class="mb-2 block text-xs font-semibold tracking-wider text-text-muted uppercase"
 							>Nội dung truyện</span
 						>
-						<Textarea
+						<MarkdownEditor
+							id="short-story-content"
 							bind:value={shortContent}
 							maxlength={CHAPTER_CONTENT_MAX_LENGTH}
-							class="min-h-[30rem] bg-background px-5 py-4 text-base leading-8"
+							minHeight="30rem"
 							placeholder="Bóng tối bắt đầu cựa mình…"
 						/>
 						<p class="mt-2 text-right text-xs text-text-muted">

@@ -2,6 +2,7 @@ import { audioAssetSchema, cloudinaryAssetSchema } from '$lib/validation/media';
 import { z } from 'zod';
 import { CHAPTER_CONTENT_MAX_LENGTH } from '$lib/validation/chapter';
 import { interactiveStoryContentSchema } from './interactive-story';
+import { assertSafeMarkdown, MARKDOWN_UNSUPPORTED_MESSAGE } from '$lib/markdown/safe-markdown';
 export const STORY_TITLE_MAX_LENGTH = 180;
 export const STORY_DESCRIPTION_MAX_LENGTH = 2_000;
 export const STORY_TAG_MAX_COUNT = 8;
@@ -32,7 +33,8 @@ export const createStorySchema = z.union([
 			.string()
 			.trim()
 			.min(1, 'Truyện ngắn cần có nội dung.')
-			.max(CHAPTER_CONTENT_MAX_LENGTH),
+			.max(CHAPTER_CONTENT_MAX_LENGTH)
+			.refine((value) => !assertSafeMarkdown(value), MARKDOWN_UNSUPPORTED_MESSAGE),
 		shortAudio: z.null().optional()
 	}),
 	createStoryBase.extend({

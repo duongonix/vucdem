@@ -6,9 +6,12 @@
 		ArrowLeft,
 		ChevronLeft,
 		ChevronRight,
+		Columns3,
 		LoaderCircle,
+		Palette,
 		Quote,
-		Settings2
+		Settings2,
+		Type
 	} from '@lucide/svelte';
 	import { getStoryBySlug } from '$lib/services/stories';
 	import { getInteractiveContent, listChapters } from '$lib/services/chapters';
@@ -20,6 +23,7 @@
 	import type { Chapter, InteractiveStoryContent, Story } from '$lib/types';
 	import CommentSection from '$lib/components/comment/CommentSection.svelte';
 	import AudioPlayer from '$lib/components/audio/AudioPlayer.svelte';
+	import MarkdownContent from '$lib/components/markdown/MarkdownContent.svelte';
 	import TextToSpeechPlayer from '$lib/components/speech/TextToSpeechPlayer.svelte';
 	import InteractiveStoryPlayer from './interactive/InteractiveStoryPlayer.svelte';
 	import { recordChapterView } from '$lib/services/views';
@@ -141,12 +145,11 @@
 				if (chapter?.id === currentChapter.id) interactiveLoading = false;
 			});
 	});
-	const paragraphs = $derived(
-		chapter?.content
-			.split(/\n{2,}/)
-			.map((p) => p.trim())
-			.filter(Boolean) ?? []
-	);
+	const themeOptions: { value: typeof theme; label: string }[] = [
+		{ value: 'night', label: 'Đêm sâu' },
+		{ value: 'blood', label: 'Crimson' },
+		{ value: 'paper', label: 'Giấy cũ' }
+	];
 </script>
 
 <div class={`reader theme-${theme} min-h-[calc(100vh-5rem)] px-4 py-6 sm:px-6`}>
@@ -161,19 +164,57 @@
 			aria-label="Tùy chỉnh đọc"><Settings2 class="size-5" /></button
 		>
 	</div>
-	{#if settings}<div
-			class="mx-auto mt-4 grid max-w-xl grid-cols-3 gap-4 border border-border bg-surface p-4 text-xs text-text-muted"
-		>
-			<label>Cỡ chữ<input type="range" min="16" max="24" bind:value={fontSize} /></label><label
-				>Dòng<input type="range" min="1.5" max="2.1" step=".05" bind:value={lineHeight} /></label
-			><label>Độ rộng<input type="range" min="600" max="820" step="20" bind:value={width} /></label
-			><label class="col-span-3"
-				>Không khí<select bind:value={theme} class="reader-select"
-					><option value="night">Đêm sâu</option><option value="blood">Crimson</option><option
-						value="paper">Giấy cũ</option
-					></select
-				></label
-			>
+	{#if settings}<div class="reader-settings mx-auto mt-4 max-w-3xl" aria-label="Tùy chỉnh đọc">
+			<div class="settings-header">
+				<div>
+					<p>Tùy chỉnh trang đọc</p>
+					<span>Điều chỉnh nhịp chữ cho phiên đọc dài</span>
+				</div>
+				<Settings2 class="size-4" aria-hidden="true" />
+			</div>
+			<div class="settings-controls">
+				<label class="setting-control">
+					<span><Type class="size-4" aria-hidden="true" /> Cỡ chữ <b>{fontSize}px</b></span>
+					<input type="range" min="16" max="24" bind:value={fontSize} aria-label="Cỡ chữ" />
+				</label>
+				<label class="setting-control">
+					<span
+						><Type class="size-4" aria-hidden="true" /> Giãn dòng
+						<b>{lineHeight.toFixed(2)}</b></span
+					>
+					<input
+						type="range"
+						min="1.5"
+						max="2.1"
+						step=".05"
+						bind:value={lineHeight}
+						aria-label="Giãn dòng"
+					/>
+				</label>
+				<label class="setting-control">
+					<span><Columns3 class="size-4" aria-hidden="true" /> Độ rộng <b>{width}px</b></span>
+					<input
+						type="range"
+						min="600"
+						max="820"
+						step="20"
+						bind:value={width}
+						aria-label="Độ rộng dòng đọc"
+					/>
+				</label>
+			</div>
+			<div class="theme-control">
+				<span><Palette class="size-4" aria-hidden="true" /> Không khí</span>
+				<div class="theme-options" role="radiogroup" aria-label="Không khí trang đọc">
+					{#each themeOptions as option (option.value)}<button
+							type="button"
+							class:active={theme === option.value}
+							role="radio"
+							aria-checked={theme === option.value}
+							onclick={() => (theme = option.value)}>{option.label}</button
+						>{/each}
+				</div>
+			</div>
 		</div>{/if}{#if loading}<p
 			class="mx-auto mt-20 flex max-w-xl items-center justify-center gap-2 text-text-muted"
 		>
@@ -220,7 +261,7 @@
 					style:font-size={`${fontSize}px`}
 					style:line-height={lineHeight}
 				>
-					{#each paragraphs as paragraph, paragraphIndex (paragraphIndex)}<p>{paragraph}</p>{/each}
+					<MarkdownContent content={chapter.content} reading />
 				</div>{/if}
 			{#if selectedQuote}<div
 					class="mt-5 flex items-center justify-between gap-3 border-l border-red-dark bg-surface px-4 py-3"
@@ -271,11 +312,6 @@
 		margin: 0 0 1.5em;
 		white-space: pre-wrap;
 	}
-	.reader input[type='range'] {
-		display: block;
-		width: 100%;
-		accent-color: var(--color-red);
-	}
 	.reader {
 		background: #050505;
 		transition:
@@ -291,12 +327,141 @@
 	.reader.theme-paper .chapter {
 		color: #d8cfbf;
 	}
-	.reader-select {
-		margin-top: 0.4rem;
+	.reader-settings {
+		position: relative;
+		overflow: hidden;
+		border: 1px solid var(--color-border-red);
+		background:
+			linear-gradient(135deg, rgb(216 35 35 / 8%), transparent 34%),
+			linear-gradient(180deg, rgb(255 255 255 / 2%), transparent), var(--color-surface);
+		padding: 1rem;
+		box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
+	}
+	.reader-settings::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background:
+			linear-gradient(90deg, transparent, rgb(216 35 35 / 22%), transparent) top left / 100% 1px
+				no-repeat,
+			radial-gradient(circle at 10% 0%, rgb(216 35 35 / 13%), transparent 32rem);
+	}
+	.settings-header,
+	.settings-controls,
+	.theme-control {
+		position: relative;
+		z-index: 1;
+	}
+	.settings-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		border-bottom: 1px solid var(--color-border);
+		padding-bottom: 0.85rem;
+		color: var(--color-red);
+	}
+	.settings-header p {
+		font-family: var(--font-editorial);
+		font-size: 1.05rem;
+		line-height: 1.1;
+		color: var(--color-text);
+	}
+	.settings-header span {
+		margin-top: 0.25rem;
+		display: block;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+	}
+	.settings-controls {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.8rem;
+		padding-top: 0.9rem;
+	}
+	.setting-control {
+		min-width: 0;
+		border: 1px solid var(--color-border);
+		background: rgb(5 5 5 / 55%);
+		padding: 0.8rem;
+	}
+	.setting-control span,
+	.theme-control > span {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.75rem;
+		color: var(--color-text-secondary);
+	}
+	.setting-control b {
+		margin-left: auto;
+		font-weight: 500;
+		color: var(--color-red);
+	}
+	.reader input[type='range'] {
+		display: block;
 		width: 100%;
+		height: 1.6rem;
+		margin-top: 0.55rem;
+		accent-color: var(--color-red);
+		cursor: pointer;
+	}
+	.reader input[type='range']:focus-visible,
+	.theme-options button:focus-visible {
+		outline: 1px solid var(--color-red);
+		outline-offset: 3px;
+	}
+	.theme-control {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: center;
+		gap: 0.85rem;
+		border-top: 1px solid var(--color-border);
+		margin-top: 0.9rem;
+		padding-top: 0.9rem;
+	}
+	.theme-options {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.4rem;
 		border: 1px solid var(--color-border);
 		background: var(--color-background);
-		padding: 0.45rem 0.6rem;
+		padding: 0.25rem;
+	}
+	.theme-options button {
+		min-width: 0;
+		padding: 0.5rem 0.65rem;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+		transition:
+			background-color 160ms ease,
+			color 160ms ease,
+			border-color 160ms ease;
+	}
+	.theme-options button.active {
+		border: 1px solid var(--color-border-red);
+		background: rgb(77 18 18 / 62%);
 		color: var(--color-text);
+	}
+	.theme-options button:not(.active):hover {
+		color: var(--color-text-secondary);
+		background: var(--color-surface-2);
+	}
+	@media (max-width: 720px) {
+		.reader-settings {
+			padding: 0.85rem;
+		}
+		.settings-controls,
+		.theme-control {
+			grid-template-columns: 1fr;
+		}
+		.theme-options {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+		.theme-options button {
+			padding-inline: 0.35rem;
+			font-size: 0.68rem;
+		}
 	}
 </style>

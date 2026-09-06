@@ -16,6 +16,11 @@ Story requires its complete body in the creation form and atomically creates one
 inside the still-private Story Draft. Its manager edits that single body, hides add/remove Chapter
 actions, and publishes the Story directly as `completed`. The format cannot be changed later.
 
+Text Chapters and short Story prose may be authored with the same safe Markdown subset as Posts:
+headings, blockquotes, lists, emphasis, inline/fenced code, horizontal rules, and safe links.
+Markdown image syntax, raw HTML, and unsafe link protocols are rejected because media must use the
+approved Cloudinary upload flow and rendered content must not contain unsanitized HTML.
+
 After selecting either Story format, the author chooses `Văn bản` or `Audio`. Short Stories upload
 their single audio while creating the Story. Serial Stories upload audio in each Chapter editor and
 may mix audio and text Chapters. The editor preallocates IDs before signing, displays upload

@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { Eye, MessageCircle, MoreHorizontal, Pencil, Share2, Trash2 } from '@lucide/svelte';
 	import BookmarkButton from '$lib/components/bookmark/BookmarkButton.svelte';
+	import MarkdownContent from '$lib/components/markdown/MarkdownContent.svelte';
 	import ReportDialog from '$lib/components/report/ReportDialog.svelte';
 	import CommentSection from '$lib/components/comment/CommentSection.svelte';
 	import { getPost, removePost } from '$lib/services/posts';
@@ -152,11 +153,7 @@
 					alt={`Ảnh đại diện cho ${post.title}`}
 					decoding="async"
 				/>{/if}
-			<div
-				class="mt-8 max-w-[52rem] text-[1.05rem] leading-8 whitespace-pre-wrap text-text-secondary"
-			>
-				{post.content}
-			</div>
+			<div class="mt-8"><MarkdownContent content={post.content} /></div>
 			{#if post.images.length}<div class="mt-8 grid gap-5">
 					{#each post.images as image (image.publicId)}<img
 							class="w-full border border-border"
