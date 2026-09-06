@@ -2,6 +2,11 @@
 
 The content selector contains `Văn bản`, `Audio`, and `Nhập vai`. `Nhập vai` mounts the dedicated character/timeline editor defined in `specs/features/interactive-stories.md`; it never falls back to the text editor. Short stories author this content during creation, while serial stories author it per chapter.
 
+Inside `Nhập vai`, authors choose `Trình chỉnh sửa` or `Nhập JSON`. Import replaces the current
+Chapter's normalized Interactive editor state only after successful syntax, schema, semantic and
+media-ownership validation. Export is client-side and portable. See
+`specs/features/interactive-json.md`.
+
 ## Contract
 
 Authenticated authors create a draft from `/write?mode=story`, then manage it at `/story/{id}/manage`. The create form accepts title, description, at most eight normalized tags, and an optional Cloudinary 2:3 cover. Slugs are server-generated and atomically reserved.

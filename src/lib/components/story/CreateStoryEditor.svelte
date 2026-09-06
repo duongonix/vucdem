@@ -15,7 +15,7 @@
 	import StoryCoverUploader from './StoryCoverUploader.svelte';
 	import StoryContentFormatSelector from './StoryContentFormatSelector.svelte';
 	import StoryTagEditor from './StoryTagEditor.svelte';
-	import InteractiveStoryEditor from './interactive/InteractiveStoryEditor.svelte';
+	import InteractiveStoryAuthoring from './interactive/InteractiveStoryAuthoring.svelte';
 	let storyId = $state('');
 	let title = $state('');
 	let description = $state('');
@@ -241,9 +241,10 @@
 						{storyId}
 						chapterId="short-story"
 						bind:audio={shortAudio}
-					/>{:else}<InteractiveStoryEditor
+					/>{:else}<InteractiveStoryAuthoring
 						{storyId}
 						chapterId="short-story"
+						fallbackTitle={title}
 						bind:value={interactive}
 						bind:uploading={interactiveUploading}
 					/>{/if}

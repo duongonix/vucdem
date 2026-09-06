@@ -10,6 +10,11 @@ V1 is a linear event timeline. A choice is shown as a message sent by the player
 
 The editor creates exactly one `player` character by default and supports additional fiction characters. It provides message quick-compose and ordered message, choice, system, typing, delay, image and audio events. Events can be edited, duplicated, deleted and moved. A character referenced by an event cannot be deleted.
 
+Interactive authoring has two compatible sub-tabs: the existing visual `Trình chỉnh sửa` and
+`Nhập JSON`. JSON V1 is a portable import/export surface that normalizes into the same editor state;
+it is not a content format or persistence model. Its schema, security and replacement behavior are
+defined in `specs/features/interactive-json.md`.
+
 The author selects a direct or group conversation header. A direct header references one fiction character and shows that character's identity/status. A group header stores a group title and shows the member count and character names. This is chapter-level presentation configuration and does not create global User or Community records.
 
 Publish validation requires exactly one player, at least one event, valid character references, two to four non-empty choice options, and completed media uploads. Typing and delay values are limited to 250–10,000 ms. A chapter supports at most 450 events and a Story at most 24 characters. This leaves safe headroom below Firestore's 500-write transaction ceiling.

@@ -20,7 +20,7 @@
 <div class="flex min-w-0 items-center gap-2 text-xs text-text-muted">
 	<a href={resolve('/u/[username]', { username })} aria-label={`Xem hồ sơ ${name}`}>
 		{#if avatarUrl}<img
-				class="size-7 rounded-full border border-border object-cover grayscale"
+				class="size-7 rounded-full border border-border object-cover"
 				src={avatarUrl}
 				alt=""
 				loading="lazy"

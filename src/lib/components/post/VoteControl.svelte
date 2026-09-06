@@ -119,6 +119,14 @@
 		.heart-button.compact {
 			height: 2.75rem;
 		}
+		.heart-button :global(svg) {
+			width: 1rem;
+			height: 1rem;
+		}
+		.engagement-count,
+		.heart-control.compact .engagement-count {
+			font-size: 0.75rem;
+		}
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.heart-button,

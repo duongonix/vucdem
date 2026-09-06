@@ -18,7 +18,7 @@
 	import AudioUploader from '$lib/components/audio/AudioUploader.svelte';
 	import { deleteImage } from '$lib/cloudinary/client';
 	import StoryContentFormatSelector from './StoryContentFormatSelector.svelte';
-	import InteractiveStoryEditor from './interactive/InteractiveStoryEditor.svelte';
+	import InteractiveStoryAuthoring from './interactive/InteractiveStoryAuthoring.svelte';
 	let {
 		storyId,
 		chapter = null,
@@ -193,9 +193,10 @@
 		</p>{:else if contentFormat === 'audio'}<div class="mt-6">
 			<AudioUploader bind:this={audioUploader} {storyId} {chapterId} bind:audio />
 		</div>{:else}<div class="mt-6">
-			<InteractiveStoryEditor
+			<InteractiveStoryAuthoring
 				{storyId}
 				{chapterId}
+				fallbackTitle={title}
 				bind:value={interactive}
 				bind:uploading={interactiveUploading}
 			/>

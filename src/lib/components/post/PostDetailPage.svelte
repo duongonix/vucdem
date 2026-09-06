@@ -243,4 +243,16 @@
 	.detail-view {
 		cursor: default;
 	}
+	@media (max-width: 639px) {
+		.detail-actions {
+			gap: 0.9rem;
+		}
+		.detail-stat {
+			font-size: 0.75rem;
+		}
+		.detail-stat :global(svg) {
+			width: 1rem;
+			height: 1rem;
+		}
+	}
 </style>

@@ -124,6 +124,16 @@
 		font-size: 0.75rem;
 		color: var(--color-text-muted);
 	}
+	@media (max-width: 639px) {
+		.engagement-item,
+		.story-parts {
+			font-size: 0.75rem;
+		}
+		.engagement-item :global(svg) {
+			width: 1rem;
+			height: 1rem;
+		}
+	}
 	@media (max-width: 420px) {
 		.engagement-cluster {
 			gap: 0.9rem;

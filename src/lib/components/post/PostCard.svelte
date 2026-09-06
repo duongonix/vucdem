@@ -109,6 +109,15 @@
 	.engagement-view {
 		cursor: default;
 	}
+	@media (max-width: 639px) {
+		.engagement-item {
+			font-size: 0.75rem;
+		}
+		.engagement-item :global(svg) {
+			width: 1rem;
+			height: 1rem;
+		}
+	}
 	@media (max-width: 420px) {
 		.engagement-cluster {
 			gap: 0.9rem;
