@@ -90,6 +90,7 @@ export const PATCH: RequestHandler = async (event) => {
 			reviewedBy: submitted ? null : (story.get('reviewedBy') ?? null),
 			rejectionReason: submitted ? null : (story.get('rejectionReason') ?? null),
 			requestedPublicationStatus: submitted ? requested : null,
+			previousPublicationStatus: submitted && wasPublic ? current : null,
 			updatedAt: now,
 			...(wasPublic ? { isPinned: false, pinnedAt: null, pinnedBy: null } : {})
 		});

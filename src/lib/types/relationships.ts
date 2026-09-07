@@ -20,4 +20,6 @@ export interface Bookmark extends FirestoreEntity {
 /** A user ID is represented by `id`; direction is determined by the containing subcollection. */
 export interface Follow extends FirestoreEntity {
 	createdAt: FirestoreTimestamp;
+	/** Present only for User-to-User follows; Story follows do not use this preference. */
+	notificationsEnabled?: boolean;
 }

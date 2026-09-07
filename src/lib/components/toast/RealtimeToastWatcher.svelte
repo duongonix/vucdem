@@ -10,9 +10,25 @@
 		follow: 'đã theo dõi bạn',
 		upvote: 'đã thích bài viết của bạn',
 		story_update: 'đã đăng chương truyện mới',
-		mention: 'đã nhắc đến bạn'
+		mention: 'đã nhắc đến bạn',
+		story_rating: 'đã đánh giá truyện của bạn',
+		story_status: 'đã cập nhật trạng thái truyện bạn theo dõi',
+		content_reported: 'đã ghi nhận báo cáo về nội dung của bạn',
+		content_hidden: 'đã điều chỉnh trạng thái nội dung của bạn',
+		system_announcement: 'đã gửi thông báo hệ thống',
+		reading_reminder: 'có chương mới trong truyện bạn đang đọc dở',
+		content_approved: 'đã phê duyệt nội dung của bạn',
+		content_rejected: 'đã gửi phản hồi kiểm duyệt',
+		author_post: 'đã đăng bài viết mới',
+		author_story: 'đã đăng truyện mới',
+		author_chapter: 'đã đăng chương truyện mới'
 	};
-	function notificationDescription(item: { type: string; targetType: string }): string {
+	function notificationDescription(item: {
+		type: string;
+		targetType: string;
+		message?: string | null;
+	}): string {
+		if (item.message) return item.message;
 		if (item.type === 'follow' && item.targetType === 'story') return 'đã theo dõi truyện của bạn';
 		return notificationCopy[item.type] ?? 'đã tương tác với bạn';
 	}

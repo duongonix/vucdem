@@ -1,5 +1,6 @@
 import { optionalFirebaseUser, requireFirebaseUser } from '$lib/server/auth';
 import { getFirebaseAdminDb } from '$lib/server/firebase-admin';
+import { actorSnapshot, createNotification } from '$lib/server/notifications';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
@@ -63,6 +64,21 @@ export const PUT: RequestHandler = async (event) => {
 				updatedAt: FieldValue.serverTimestamp()
 			});
 		transaction.update(storyRef, { ratingCount: count, ratingSum: sum, ratingAverage: average });
+		if (
+			story.get('authorId') !== identity.uid &&
+			(!previousRating.exists || previous !== parsed.data.value)
+		)
+			createNotification(transaction, db, {
+				id: `story_rating_${storyRef.id}_${identity.uid}`,
+				userId: story.get('authorId'),
+				actorId: identity.uid,
+				...actorSnapshot(user),
+				type: 'story_rating',
+				targetType: 'story',
+				targetId: storyRef.id,
+				message: `đã đánh giá ${parsed.data.value} sao cho “${String(story.get('title') ?? 'truyện của bạn')}”.`,
+				destination: `/story/${String(story.get('slug') ?? '')}`
+			});
 	});
 	return json({ value: parsed.data.value, average, count });
 };

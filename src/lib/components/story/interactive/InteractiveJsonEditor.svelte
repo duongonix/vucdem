@@ -5,6 +5,7 @@
 		Check,
 		Clipboard,
 		Download,
+		Eye,
 		FileJson,
 		RotateCcw,
 		Sparkles,
@@ -18,6 +19,7 @@
 		parseInteractiveJson,
 		type InteractiveJsonParseResult
 	} from '$lib/interactive-json';
+	import InteractiveStoryPlayer from './InteractiveStoryPlayer.svelte';
 
 	let {
 		storyId,
@@ -39,6 +41,7 @@
 	let fileError = $state('');
 	let copied = $state(false);
 	let showHelp = $state(false);
+	let previewContent = $state<InteractiveStoryContent | null>(null);
 	const template = `{
   "version": 1,
   "characters": [
@@ -93,6 +96,12 @@
 		value = structuredClone(checked.content);
 		raw = JSON.stringify(checked.json, null, 2);
 		onimport?.();
+	}
+
+	function preview() {
+		const checked = validate();
+		if (!checked.success) return;
+		previewContent = structuredClone(checked.content);
 	}
 
 	async function chooseFile(event: Event) {
@@ -255,6 +264,9 @@
 
 	<div class="mt-4 flex flex-wrap items-center gap-2">
 		<button type="button" class="secondary-button" onclick={validate}>Kiểm tra</button>
+		<button type="button" class="secondary-button" onclick={preview} disabled={!raw.trim()}>
+			<Eye class="size-4" /> Xem trước
+		</button>
 		<button type="button" class="primary-button" onclick={importContent} disabled={!raw.trim()}>
 			Nhập vào truyện
 		</button>
@@ -281,6 +293,21 @@
 			</p>
 		</div>{/if}
 </section>
+
+{#if previewContent}<div
+		class="fixed inset-0 z-50 overflow-y-auto bg-black/90 p-3 sm:p-8"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Xem trước truyện nhập vai"
+	>
+		<button
+			type="button"
+			onclick={() => (previewContent = null)}
+			class="mx-auto mb-3 block border border-border px-4 py-2 text-sm text-text"
+			>Đóng xem trước</button
+		>
+		<InteractiveStoryPlayer content={previewContent} />
+	</div>{/if}
 
 <style>
 	.tool-button,

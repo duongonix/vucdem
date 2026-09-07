@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Menu, Search } from '@lucide/svelte';
+	import { Menu } from '@lucide/svelte';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import {
 		Dialog,
@@ -36,19 +36,6 @@
 			<DialogDescription>Khám phá nội dung và chủ đề trên VỰC ĐÊM.</DialogDescription>
 		</DialogHeader>
 		<div class="p-4">
-			<form class="relative mb-6 block" action="/search" method="get" role="search">
-				<span class="sr-only">Tìm kiếm</span>
-				<input
-					name="q"
-					type="search"
-					class="h-11 w-full border border-border bg-surface-2 pr-10 pl-3 text-sm outline-none focus-visible:border-red"
-					placeholder="Tìm kiếm…"
-				/>
-				<Search
-					class="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-text-muted"
-					aria-hidden="true"
-				/>
-			</form>
 			<LeftSidebar showRankings onNavigate={() => (open = false)} />
 			{#if !isFocusedRoute}<div class="mt-8 border-t border-border pt-8">
 					<h2 class="mb-4 text-xs tracking-[0.14em] text-red uppercase">Khám phá thêm</h2>

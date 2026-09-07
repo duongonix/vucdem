@@ -19,8 +19,15 @@ export const POST: RequestHandler = async (event) => {
 		error(400, 'Bạn không thể báo cáo nội dung của chính mình.');
 	const id = `${identity.uid}_${parsed.data.targetType}_${parsed.data.targetId}`;
 	const ref = db.collection('reports').doc(id);
+	const notificationRef = db
+		.collection('notifications')
+		.doc(`content_reported_${parsed.data.targetType}_${parsed.data.targetId}`);
 	await db.runTransaction(async (t) => {
-		if ((await t.get(ref)).exists) error(409, 'Bạn đã báo cáo nội dung này.');
+		const [existingReport, existingNotification] = await Promise.all([
+			t.get(ref),
+			t.get(notificationRef)
+		]);
+		if (existingReport.exists) error(409, 'Bạn đã báo cáo nội dung này.');
 		t.create(ref, {
 			reporterId: identity.uid,
 			...parsed.data,
@@ -29,6 +36,26 @@ export const POST: RequestHandler = async (event) => {
 			reviewedBy: null,
 			reviewedAt: null
 		});
+		if (!existingNotification.exists)
+			t.create(notificationRef, {
+				userId: String(target.get('authorId')),
+				actorId: 'system',
+				actorName: 'Hệ thống Vực Đêm',
+				actorAvatarUrl: null,
+				type: 'content_reported',
+				targetType: parsed.data.targetType,
+				targetId: parsed.data.targetId,
+				message: 'Nội dung của bạn đã nhận được báo cáo và sẽ được Ban quản trị xem xét.',
+				destination:
+					parsed.data.targetType === 'post'
+						? `/post/${parsed.data.targetId}`
+						: parsed.data.targetType === 'story'
+							? `/story/${String(target.get('slug') ?? '')}`
+							: '/notifications',
+				isRead: false,
+				createdAt: FieldValue.serverTimestamp(),
+				readAt: null
+			});
 	});
 	return json({ report: serializeReport(await ref.get()) }, { status: 201 });
 };

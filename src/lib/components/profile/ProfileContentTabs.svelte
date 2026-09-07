@@ -1,46 +1,66 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- dynamic content links */
-	import { LoaderCircle } from '@lucide/svelte';
+	import { onMount } from 'svelte';
+	import { BookOpenCheck, LoaderCircle } from '@lucide/svelte';
 	import { getBookmarks, getProfileContent } from '$lib/services/profile-content';
+	import { getReadingHistory } from '$lib/services/reading';
 	import { authStore } from '$lib/stores/auth.svelte';
 	let { username, ownerId }: { username: string; ownerId: string } = $props();
-	let tab = $state<'posts' | 'stories' | 'bookmarks'>('posts');
+	let tab = $state<'posts' | 'stories' | 'bookmarks' | 'history'>('posts');
 	let items = $state<Record<string, unknown>[]>([]);
 	let cursor = $state<string | null>(null);
 	let loading = $state(false);
 	let errorMessage = $state('');
+	let requestVersion = 0;
 	const isOwner = $derived(authStore.user?.id === ownerId);
-	async function load(reset = true) {
+	async function load(
+		reset = true,
+		selectedTab: typeof tab = tab,
+		selectedUsername: string = username
+	) {
+		const request = ++requestVersion;
 		loading = true;
 		errorMessage = '';
 		try {
-			if (tab === 'bookmarks') {
-				items = (await getBookmarks()).map((x) => ({ ...x.content, targetType: x.targetType }));
+			if (selectedTab === 'bookmarks') {
+				const bookmarks = await getBookmarks();
+				if (request !== requestVersion) return;
+				items = bookmarks.map((x) => ({ ...x.content, targetType: x.targetType }));
+				cursor = null;
+			} else if (selectedTab === 'history') {
+				const history = await getReadingHistory();
+				if (request !== requestVersion) return;
+				items = history.map((item) => ({ ...item }));
 				cursor = null;
 			} else {
 				const page = await getProfileContent(
-					username,
-					tab,
+					selectedUsername,
+					selectedTab,
 					reset ? undefined : (cursor ?? undefined)
 				);
+				if (request !== requestVersion) return;
 				items = reset ? page.items : [...items, ...page.items];
 				cursor = page.nextCursor;
 			}
 		} catch (r) {
+			if (request !== requestVersion) return;
 			errorMessage = r instanceof Error ? r.message : 'Không thể tải nội dung.';
 		} finally {
-			loading = false;
+			if (request === requestVersion) loading = false;
 		}
 	}
 	function select(next: typeof tab) {
+		if (tab === next) return;
 		tab = next;
-		void load();
+		items = [];
+		cursor = null;
+		void load(true, next, username);
 	}
-	$effect(() => {
-		void username;
-		void load();
+	onMount(() => {
+		void load(true, tab, username);
 	});
 	function href(item: Record<string, unknown>) {
+		if (tab === 'history') return `/story/${item.storySlug}/${item.chapterNumber}`;
 		return item.targetType === 'story' || tab === 'stories'
 			? `/story/${item.slug}`
 			: `/post/${item.id}`;
@@ -54,6 +74,8 @@
 			onclick={() => select('stories')}>Truyện</button
 		>{#if isOwner}<button class:active={tab === 'bookmarks'} onclick={() => select('bookmarks')}
 				>Đã lưu</button
+			><button class:active={tab === 'history'} onclick={() => select('history')}
+				><BookOpenCheck class="size-3.5" /> Lịch sử</button
 			>{/if}
 	</nav>
 	{#if loading && !items.length}<p class="state">
@@ -61,13 +83,19 @@
 		</p>{:else if errorMessage}<p class="state text-error">
 			{errorMessage}
 		</p>{:else if items.length}<div class="profile-content-grid">
-			{#each items as item (String(item.id))}<a href={href(item)} class="profile-content-card"
+			{#each items as item (String(item.id ?? item.storyId))}<a
+					href={href(item)}
+					class="profile-content-card"
 					><p class="profile-content-kicker">
-						{String(item.status ?? item.targetType ?? 'Nội dung')}
+						{tab === 'history'
+							? `Chương ${String(item.chapterNumber)} · ${Number(item.progressPercent)}% đã đọc`
+							: String(item.status ?? item.targetType ?? 'Nội dung')}
 					</p>
-					<h3>{String(item.title)}</h3>
+					<h3>{String(tab === 'history' ? item.storyTitle : item.title)}</h3>
 					<p class="profile-content-summary">
-						{String(item.excerpt ?? item.description ?? '')}
+						{tab === 'history'
+							? `Đọc gần nhất: ${String(item.chapterTitle)}`
+							: String(item.excerpt ?? item.description ?? '')}
 					</p></a
 				>{/each}
 		</div>
@@ -76,11 +104,18 @@
 				disabled={loading}
 				class="mx-auto block border border-border px-5 py-2 text-sm text-text-secondary"
 				>Xem thêm</button
-			>{/if}{:else}<p class="state">Chưa có nội dung trong mục này.</p>{/if}
+			>{/if}{:else}<p class="state">
+			{tab === 'history'
+				? 'Bạn chưa có truyện nào trong lịch sử đọc.'
+				: 'Chưa có nội dung trong mục này.'}
+		</p>{/if}
 </section>
 
 <style>
 	nav button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
 		min-height: 2.75rem;
 		border-bottom: 2px solid transparent;
 		padding: 0 1rem;

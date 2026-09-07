@@ -1,11 +1,17 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { LoaderCircle, UserMinus, UserPlus } from '@lucide/svelte';
-	import { followUser, getFollowState, unfollowUser } from '$lib/services/follows';
+	import { Bell, BellOff, LoaderCircle, UserMinus, UserPlus } from '@lucide/svelte';
+	import {
+		followUser,
+		getFollowState,
+		setFollowNotifications,
+		unfollowUser
+	} from '$lib/services/follows';
 	import { authStore } from '$lib/stores/auth.svelte';
 	let { username, oncountchange }: { username: string; oncountchange?: (count: number) => void } =
 		$props();
 	let following = $state(false);
+	let notificationsEnabled = $state(false);
 	let busy = $state(false);
 	let error = $state('');
 	$effect(() => {
@@ -13,6 +19,7 @@
 			void getFollowState(username)
 				.then((state) => {
 					following = state.following;
+					notificationsEnabled = state.notificationsEnabled;
 					oncountchange?.(state.followersCount);
 				})
 				.catch(() => {});
@@ -30,6 +37,7 @@
 		try {
 			const state = following ? await followUser(username) : await unfollowUser(username);
 			following = state.following;
+			notificationsEnabled = state.notificationsEnabled;
 			oncountchange?.(state.followersCount);
 		} catch (cause) {
 			following = previous;
@@ -38,9 +46,25 @@
 			busy = false;
 		}
 	}
+	async function toggleNotifications() {
+		if (!following || busy) return;
+		const previous = notificationsEnabled;
+		notificationsEnabled = !notificationsEnabled;
+		busy = true;
+		error = '';
+		try {
+			const state = await setFollowNotifications(username, notificationsEnabled);
+			notificationsEnabled = state.notificationsEnabled;
+		} catch (cause) {
+			notificationsEnabled = previous;
+			error = cause instanceof Error ? cause.message : 'Không thể cập nhật thông báo theo dõi.';
+		} finally {
+			busy = false;
+		}
+	}
 </script>
 
-<div class="relative">
+<div class="relative flex items-center gap-2">
 	<button
 		class:border-border={following}
 		class:bg-red-dark={!following}
@@ -57,4 +81,16 @@
 		>
 			{error}
 		</p>{/if}
+	{#if following}<button
+			onclick={toggleNotifications}
+			disabled={busy}
+			aria-label={notificationsEnabled
+				? 'Tắt thông báo từ người này'
+				: 'Bật thông báo từ người này'}
+			aria-pressed={notificationsEnabled}
+			class={`inline-flex size-10 items-center justify-center border border-border bg-surface text-text-secondary transition-colors hover:border-red-dark hover:text-red disabled:opacity-50 ${notificationsEnabled ? 'border-red bg-red-muted/30 text-red-bright' : ''}`}
+			>{#if busy}<LoaderCircle class="size-4 animate-spin" />{:else if notificationsEnabled}<Bell
+					class="size-[17px]"
+				/>{:else}<BellOff class="size-[17px]" />{/if}</button
+		>{/if}
 </div>

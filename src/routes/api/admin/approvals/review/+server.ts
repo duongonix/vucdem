@@ -4,6 +4,65 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
 import { approvalReviewSchema } from '$lib/validation/approval';
 
+type AuthorPublication = {
+	id: string;
+	authorId: string;
+	title: string;
+	slug: string;
+	submissionVersion: number;
+	type: 'author_post' | 'author_story';
+};
+
+async function notifyAuthorFollowers(
+	db: FirebaseFirestore.Firestore,
+	publication: AuthorPublication
+) {
+	const [author, followers] = await Promise.all([
+		db.collection('users').doc(publication.authorId).get(),
+		db
+			.collection('users')
+			.doc(publication.authorId)
+			.collection('followers')
+			.where('notificationsEnabled', '==', true)
+			.get()
+	]);
+	if (!author.exists || followers.empty) return;
+	const avatar = author.get('avatar') as { url?: unknown } | null;
+	const actorName = String(author.get('displayName') ?? author.get('username') ?? 'Tác giả');
+	const actorAvatarUrl = typeof avatar?.url === 'string' ? avatar.url : null;
+	const targetType = publication.type === 'author_post' ? 'post' : 'story';
+	const destination =
+		publication.type === 'author_post' ? `/post/${publication.id}` : `/story/${publication.slug}`;
+	for (let offset = 0; offset < followers.docs.length; offset += 450) {
+		const batch = db.batch();
+		for (const follower of followers.docs.slice(offset, offset + 450)) {
+			if (follower.id === publication.authorId) continue;
+			batch.set(
+				db
+					.collection('notifications')
+					.doc(
+						`${publication.type}_${publication.id}_${publication.submissionVersion}_${follower.id}`
+					),
+				{
+					userId: follower.id,
+					actorId: publication.authorId,
+					actorName,
+					actorAvatarUrl,
+					type: publication.type,
+					targetType,
+					targetId: publication.id,
+					message: `“${publication.title}” vừa được đăng.`,
+					destination,
+					isRead: false,
+					createdAt: FieldValue.serverTimestamp(),
+					readAt: null
+				}
+			);
+		}
+		await batch.commit();
+	}
+}
+
 export const PATCH: RequestHandler = async (event) => {
 	const { identity, profile } = await requireApplicationRole(event, ['admin']);
 	const parsed = approvalReviewSchema.safeParse(await event.request.json().catch(() => null));
@@ -18,7 +77,22 @@ export const PATCH: RequestHandler = async (event) => {
 				? db.collection('stories').doc(parsed.data.id)
 				: storyRef?.collection('chapters').doc(parsed.data.id);
 	if (!targetRef) error(400, 'Thiếu Story của chương cần duyệt.');
-	let approvedChapter: { storyId: string; chapterId: string; authorId: string } | null = null;
+	let approvedChapter: {
+		storyId: string;
+		chapterId: string;
+		authorId: string;
+		chapterNumber: number;
+		storySlug: string;
+	} | null = null;
+	let changedStoryStatus: {
+		storyId: string;
+		authorId: string;
+		storySlug: string;
+		storyTitle: string;
+		status: 'ongoing' | 'hiatus' | 'completed';
+		submissionVersion: number;
+	} | null = null;
+	let approvedPublication: AuthorPublication | null = null;
 	await db.runTransaction(async (transaction) => {
 		const target = await transaction.get(targetRef);
 		if (!target.exists) error(404, 'Không tìm thấy nội dung cần duyệt.');
@@ -77,6 +151,15 @@ export const PATCH: RequestHandler = async (event) => {
 					: {})
 			});
 			if (parsed.data.decision === 'approved') {
+				if (!target.get('publishedAt'))
+					approvedPublication = {
+						id: target.id,
+						authorId: effectiveAuthorId,
+						title,
+						slug: target.id,
+						submissionVersion: parsed.data.expectedSubmissionVersion,
+						type: 'author_post'
+					};
 				transaction.update(db.collection('users').doc(effectiveAuthorId), {
 					postCount: FieldValue.increment(1),
 					updatedAt: now
@@ -101,26 +184,59 @@ export const PATCH: RequestHandler = async (event) => {
 				...(parsed.data.decision === 'approved' ? { publishedAt: now } : {})
 			});
 			if (parsed.data.decision === 'approved')
-				transaction.update(db.collection('users').doc(effectiveAuthorId), {
-					storyCount: FieldValue.increment(1),
-					updatedAt: now
-				});
-		} else if (parsed.data.kind === 'serial_story') {
-			transaction.update(target.ref, {
-				...common,
-				status:
-					parsed.data.decision === 'approved'
-						? (target.get('requestedPublicationStatus') ?? 'ongoing')
-						: 'draft',
-				...(parsed.data.decision === 'approved'
-					? { publishedAt: target.get('publishedAt') ?? now }
-					: {})
-			});
+				if (!target.get('publishedAt'))
+					approvedPublication = {
+						id: target.id,
+						authorId: effectiveAuthorId,
+						title,
+						slug: String(target.get('slug')),
+						submissionVersion: parsed.data.expectedSubmissionVersion,
+						type: 'author_story'
+					};
 			if (parsed.data.decision === 'approved')
 				transaction.update(db.collection('users').doc(effectiveAuthorId), {
 					storyCount: FieldValue.increment(1),
 					updatedAt: now
 				});
+		} else if (parsed.data.kind === 'serial_story') {
+			const requestedStatus = target.get('requestedPublicationStatus') ?? 'ongoing';
+			const previousStatus = target.get('previousPublicationStatus');
+			transaction.update(target.ref, {
+				...common,
+				status: parsed.data.decision === 'approved' ? requestedStatus : 'draft',
+				previousPublicationStatus: null,
+				...(parsed.data.decision === 'approved'
+					? { publishedAt: target.get('publishedAt') ?? now }
+					: {})
+			});
+			if (parsed.data.decision === 'approved')
+				if (!target.get('publishedAt'))
+					approvedPublication = {
+						id: target.id,
+						authorId: effectiveAuthorId,
+						title,
+						slug: String(target.get('slug')),
+						submissionVersion: parsed.data.expectedSubmissionVersion,
+						type: 'author_story'
+					};
+			if (parsed.data.decision === 'approved')
+				transaction.update(db.collection('users').doc(effectiveAuthorId), {
+					storyCount: FieldValue.increment(1),
+					updatedAt: now
+				});
+			if (
+				parsed.data.decision === 'approved' &&
+				['ongoing', 'hiatus', 'completed'].includes(String(previousStatus)) &&
+				previousStatus !== requestedStatus
+			)
+				changedStoryStatus = {
+					storyId: target.id,
+					authorId: effectiveAuthorId,
+					storySlug: String(target.get('slug')),
+					storyTitle: String(target.get('title')),
+					status: requestedStatus as 'ongoing' | 'hiatus' | 'completed',
+					submissionVersion: parsed.data.expectedSubmissionVersion
+				};
 		} else {
 			transaction.update(target.ref, {
 				...common,
@@ -147,7 +263,13 @@ export const PATCH: RequestHandler = async (event) => {
 					});
 			}
 			if (parsed.data.decision === 'approved')
-				approvedChapter = { storyId: story!.id, chapterId: target.id, authorId: effectiveAuthorId };
+				approvedChapter = {
+					storyId: story!.id,
+					chapterId: target.id,
+					authorId: effectiveAuthorId,
+					chapterNumber: Number(target.get('chapterNumber') ?? 1),
+					storySlug: String(story!.get('slug'))
+				};
 		}
 		const notificationRef = db
 			.collection('notifications')
@@ -170,34 +292,144 @@ export const PATCH: RequestHandler = async (event) => {
 			readAt: null
 		});
 	});
-	if (approvedChapter) {
-		const approved = approvedChapter as { storyId: string; chapterId: string; authorId: string };
-		const [followers, author] = await Promise.all([
-			db.collection('stories').doc(approved.storyId).collection('followers').limit(500).get(),
-			db.collection('users').doc(approved.authorId).get()
+	const chapterNotification = approvedChapter as {
+		storyId: string;
+		chapterId: string;
+		authorId: string;
+		chapterNumber: number;
+		storySlug: string;
+	} | null;
+	const statusNotification = changedStoryStatus as {
+		storyId: string;
+		authorId: string;
+		storySlug: string;
+		storyTitle: string;
+		status: 'ongoing' | 'hiatus' | 'completed';
+		submissionVersion: number;
+	} | null;
+	const publicationNotification = approvedPublication as AuthorPublication | null;
+	if (publicationNotification) await notifyAuthorFollowers(db, publicationNotification);
+	const notificationStoryId = chapterNotification?.storyId ?? statusNotification?.storyId;
+	if (notificationStoryId) {
+		const activityAuthorId = (chapterNotification ?? statusNotification)!.authorId;
+		const [followers, author, authorFollowers, readingProgress] = await Promise.all([
+			db.collection('stories').doc(notificationStoryId).collection('followers').get(),
+			db.collection('users').doc(activityAuthorId).get(),
+			db
+				.collection('users')
+				.doc(activityAuthorId)
+				.collection('followers')
+				.where('notificationsEnabled', '==', true)
+				.get(),
+			chapterNotification
+				? db.collectionGroup('readingProgress').where('storyId', '==', notificationStoryId).get()
+				: Promise.resolve(null)
 		]);
-		if (author.exists && !followers.empty) {
+		if (author.exists) {
 			const avatar = author.get('avatar') as { url?: unknown } | null;
-			const batch = db.batch();
-			for (const follower of followers.docs) {
-				if (follower.id === approved.authorId) continue;
-				batch.set(
-					db.collection('notifications').doc(`story_update_${approved.chapterId}_${follower.id}`),
-					{
-						userId: follower.id,
-						actorId: approved.authorId,
-						actorName: String(author.get('displayName') ?? author.get('username') ?? 'Tác giả'),
-						actorAvatarUrl: typeof avatar?.url === 'string' ? avatar.url : null,
-						type: 'story_update',
-						targetType: 'chapter',
-						targetId: `${approved.storyId}:${approved.chapterId}`,
+			const actorName = String(author.get('displayName') ?? author.get('username') ?? 'Tác giả');
+			const actorAvatarUrl = typeof avatar?.url === 'string' ? avatar.url : null;
+			const followerIds = new Set(followers.docs.map((follower) => follower.id));
+			const authorFollowerIds = new Set(authorFollowers.docs.map((follower) => follower.id));
+			const writes: Array<{ id: string; data: Record<string, unknown> }> = [];
+			if (chapterNotification) {
+				for (const follower of followers.docs) {
+					if (follower.id === chapterNotification.authorId) continue;
+					writes.push({
+						id: `story_update_${chapterNotification.chapterId}_${follower.id}`,
+						data: {
+							userId: follower.id,
+							actorId: chapterNotification.authorId,
+							actorName,
+							actorAvatarUrl,
+							type: 'story_update',
+							targetType: 'chapter',
+							targetId: `${chapterNotification.storyId}:${chapterNotification.chapterId}`,
+							destination: `/story/${chapterNotification.storySlug}/${chapterNotification.chapterNumber}`
+						}
+					});
+				}
+				for (const follower of authorFollowers.docs) {
+					if (follower.id === chapterNotification.authorId || followerIds.has(follower.id))
+						continue;
+					writes.push({
+						id: `author_chapter_${chapterNotification.chapterId}_${follower.id}`,
+						data: {
+							userId: follower.id,
+							actorId: chapterNotification.authorId,
+							actorName,
+							actorAvatarUrl,
+							type: 'author_chapter',
+							targetType: 'chapter',
+							targetId: `${chapterNotification.storyId}:${chapterNotification.chapterId}`,
+							message: 'Tác giả bạn theo dõi vừa đăng chương mới.',
+							destination: `/story/${chapterNotification.storySlug}/${chapterNotification.chapterNumber}`
+						}
+					});
+				}
+				for (const progress of readingProgress?.docs ?? []) {
+					const readerId = progress.ref.parent.parent?.id;
+					if (
+						!readerId ||
+						readerId === chapterNotification.authorId ||
+						followerIds.has(readerId) ||
+						authorFollowerIds.has(readerId) ||
+						Number(progress.get('progressPercent') ?? 100) >= 100 ||
+						Number(progress.get('chapterNumber') ?? 0) >= chapterNotification.chapterNumber
+					)
+						continue;
+					writes.push({
+						id: `reading_reminder_${chapterNotification.chapterId}_${readerId}`,
+						data: {
+							userId: readerId,
+							actorId: chapterNotification.authorId,
+							actorName,
+							actorAvatarUrl,
+							type: 'reading_reminder',
+							targetType: 'chapter',
+							targetId: `${chapterNotification.storyId}:${chapterNotification.chapterId}`,
+							message: 'Chương mới đang chờ bạn trong một truyện bạn đọc dở.',
+							destination: `/story/${chapterNotification.storySlug}/${chapterNotification.chapterNumber}`
+						}
+					});
+				}
+			}
+			if (statusNotification) {
+				const statusName =
+					statusNotification.status === 'completed'
+						? 'đã hoàn thành'
+						: statusNotification.status === 'hiatus'
+							? 'đã tạm ngưng'
+							: 'đã tiếp tục ra chương';
+				for (const follower of followers.docs) {
+					if (follower.id === statusNotification.authorId) continue;
+					writes.push({
+						id: `story_status_${statusNotification.storyId}_${statusNotification.submissionVersion}_${follower.id}`,
+						data: {
+							userId: follower.id,
+							actorId: statusNotification.authorId,
+							actorName,
+							actorAvatarUrl,
+							type: 'story_status',
+							targetType: 'story',
+							targetId: statusNotification.storyId,
+							message: `“${statusNotification.storyTitle}” ${statusName}.`,
+							destination: `/story/${statusNotification.storySlug}`
+						}
+					});
+				}
+			}
+			for (let offset = 0; offset < writes.length; offset += 450) {
+				const batch = db.batch();
+				for (const write of writes.slice(offset, offset + 450))
+					batch.set(db.collection('notifications').doc(write.id), {
+						...write.data,
 						isRead: false,
 						createdAt: FieldValue.serverTimestamp(),
 						readAt: null
-					}
-				);
+					});
+				await batch.commit();
 			}
-			await batch.commit();
 		}
 	}
 	return json({ ok: true, decision: parsed.data.decision, approvedChapter });

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- authenticated destinations are introduced by later phases */
 	import { resolve } from '$app/paths';
-	import { Bell, LogIn, LogOut, Plus } from '@lucide/svelte';
+	import { Bell, LogIn, LogOut, Plus, Search } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { logout } from '$lib/services/auth';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -52,6 +52,13 @@
 		<DesktopNavigation />
 		<div class="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
 			<HeaderSearch />
+			<a
+				href={resolve('/search')}
+				class="inline-flex size-11 items-center justify-center border border-transparent text-text-secondary transition-colors hover:bg-surface-hover hover:text-text min-[900px]:hidden"
+				aria-label="Mở tìm kiếm"
+			>
+				<Search class="size-5" aria-hidden="true" />
+			</a>
 			<!-- Runtime hrefs point to routes introduced by their later roadmap phases. -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a

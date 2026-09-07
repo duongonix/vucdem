@@ -149,6 +149,7 @@ export const POST: RequestHandler = async (event) => {
 			reviewedAt: null,
 			reviewedBy: null,
 			rejectionReason: null,
+			previousPublicationStatus: null,
 			isPinned: false,
 			pinnedAt: null,
 			pinnedBy: null

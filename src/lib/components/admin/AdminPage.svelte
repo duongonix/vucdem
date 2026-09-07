@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import {
 		BadgeCheck,
+		BellRing,
 		ClipboardCheck,
 		FileStack,
 		Flag,
@@ -21,8 +22,11 @@
 	import ModerationPage from '$lib/components/moderation/ModerationPage.svelte';
 	import PostCategoryManager from './PostCategoryManager.svelte';
 	import ApprovalQueue from './ApprovalQueue.svelte';
+	import SystemAnnouncementComposer from './SystemAnnouncementComposer.svelte';
 	import { listApprovalQueue } from '$lib/services/approvals';
-	let tab = $state<'reports' | 'approvals' | 'users' | 'content' | 'categories'>('reports');
+	let tab = $state<'reports' | 'approvals' | 'users' | 'content' | 'categories' | 'announcements'>(
+		'reports'
+	);
 	let type = $state('users');
 	let items = $state<Record<string, unknown>[]>([]);
 	let loading = $state(false);
@@ -48,6 +52,12 @@
 			label: 'Danh mục',
 			description: 'Phân loại thảo luận',
 			icon: LayoutList
+		},
+		{
+			id: 'announcements' as const,
+			label: 'Thông báo',
+			description: 'Gửi đến toàn hệ thống',
+			icon: BellRing
 		}
 	];
 	async function load(next = type) {
@@ -122,7 +132,10 @@
 			Quản lý thành viên, kiểm duyệt nội dung và bảo vệ trật tự của cộng đồng.
 		</p>
 	</header>
-	<nav class="mb-7 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" aria-label="Khu vực quản trị">
+	<nav
+		class="mb-7 grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6"
+		aria-label="Khu vực quản trị"
+	>
 		{#each tabs as entry (entry.id)}{@const Icon = entry.icon}<button
 				class:active-tab={tab === entry.id}
 				class="admin-tab group relative flex min-h-20 items-center gap-3 overflow-hidden border border-border bg-surface px-4 text-left transition-colors hover:border-border-red"
@@ -146,7 +159,8 @@
 	</nav>
 	{#if tab === 'reports'}<ModerationPage />{:else if tab === 'approvals'}<ApprovalQueue
 			oncountchange={(count) => (approvalCount = count)}
-		/>{:else if tab === 'categories'}<PostCategoryManager />{:else}<div
+		/>{:else if tab === 'categories'}<PostCategoryManager
+		/>{:else if tab === 'announcements'}<SystemAnnouncementComposer />{:else}<div
 			class="mb-4 flex flex-wrap gap-2"
 		>
 			{#if tab === 'content'}{#each ['posts', 'stories', 'comments', 'communities'] as resource (resource)}<button

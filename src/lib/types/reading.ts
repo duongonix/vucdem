@@ -11,6 +11,9 @@ export interface ReadingProgress {
 	updatedAt: FirestoreTimestamp;
 }
 
+/** A compact progress record used by the private profile reading history. */
+export type ReadingHistoryItem = ReadingProgress;
+
 export interface ReaderPreferences {
 	fontSize: number;
 	lineHeight: number;

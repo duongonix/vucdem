@@ -7,7 +7,16 @@ export type NotificationKind =
 	| 'story_update'
 	| 'mention'
 	| 'content_approved'
-	| 'content_rejected';
+	| 'content_rejected'
+	| 'story_rating'
+	| 'story_status'
+	| 'content_reported'
+	| 'content_hidden'
+	| 'system_announcement'
+	| 'reading_reminder'
+	| 'author_post'
+	| 'author_story'
+	| 'author_chapter';
 export function createNotification(
 	transaction: FirebaseFirestore.Transaction,
 	db: FirebaseFirestore.Firestore,

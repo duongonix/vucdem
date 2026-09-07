@@ -92,6 +92,11 @@ Ratings use `stories/{storyId}/ratings/{uid}` with `value` (integer 1–5), `cre
 initial value `0`. A transactional server mutation creates or replaces the User's rating and updates
 all aggregates atomically. Normal clients cannot write rating documents or aggregate fields directly.
 
+When a public serialized Story is submitted for an approved state transition, the trusted
+`previousPublicationStatus` field temporarily records the prior public state. It is cleared when
+review completes and is used only to send followers a `story_status` Notification after an actual
+state change; authors cannot set it directly.
+
 `chapterSequence` is a trusted monotonically increasing allocator. It prevents duplicate chapter numbers and is not decremented when a chapter is removed.
 
 `id` is normally derived from the Firestore document ID.

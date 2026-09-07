@@ -1,6 +1,6 @@
 import { getFirebaseAuth } from '$lib/firebase/auth';
 import { Timestamp } from 'firebase/firestore';
-import type { ReaderPreferences, ReadingProgress } from '$lib/types';
+import type { ReaderPreferences, ReadingHistoryItem, ReadingProgress } from '$lib/types';
 
 const PREFERENCES_KEY = 'vucdem:reader-preferences';
 export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
@@ -27,6 +27,18 @@ export async function getReadingProgress(storyId: string): Promise<ReadingProgre
 	const body = await response.json().catch(() => ({}));
 	if (!response.ok) throw new Error(body.message ?? 'Không thể tải tiến độ đọc.');
 	return { ...body.progress, updatedAt: Timestamp.fromMillis(body.progress.updatedAt) };
+}
+
+export async function getReadingHistory(): Promise<ReadingHistoryItem[]> {
+	const user = getFirebaseAuth().currentUser;
+	if (!user) throw new Error('Bạn cần đăng nhập để xem lịch sử đọc.');
+	const response = await fetch('/api/reading-history', { headers: await headers() });
+	const body = (await response.json().catch(() => ({}))) as {
+		items?: Array<Omit<ReadingHistoryItem, 'updatedAt'> & { updatedAt: number }>;
+		message?: string;
+	};
+	if (!response.ok || !body.items) throw new Error(body.message ?? 'Không thể tải lịch sử đọc.');
+	return body.items.map((item) => ({ ...item, updatedAt: Timestamp.fromMillis(item.updatedAt) }));
 }
 
 export async function saveReadingProgress(

@@ -33,19 +33,57 @@ export const PATCH: RequestHandler = async (event) => {
 	}
 	if (!(type in statuses) || !statuses[type].includes(body.status))
 		error(400, 'Trạng thái quản trị không hợp lệ.');
-	const ref = getFirebaseAdminDb().collection(type).doc(event.params.id!);
-	if (!(await ref.get()).exists) error(404);
+	const db = getFirebaseAdminDb();
+	const ref = db.collection(type).doc(event.params.id!);
+	const snapshot = await ref.get();
+	if (!snapshot.exists) error(404);
 	const remainsPublic =
 		(type === 'posts' && body.status === 'published') ||
 		(type === 'stories' && ['ongoing', 'completed', 'hiatus'].includes(body.status));
-	await ref.update({
+	const now = FieldValue.serverTimestamp();
+	const batch = db.batch();
+	batch.update(ref, {
 		status: body.status,
 		...((type === 'posts' || type === 'stories') && !remainsPublic
 			? { isPinned: false, pinnedAt: null, pinnedBy: null }
 			: {}),
 		moderatedBy: identity.uid,
-		moderatedAt: FieldValue.serverTimestamp(),
-		updatedAt: FieldValue.serverTimestamp()
+		moderatedAt: now,
+		updatedAt: now
 	});
+	if (
+		['posts', 'stories', 'comments'].includes(type) &&
+		['hidden', 'removed'].includes(body.status) &&
+		!['hidden', 'removed'].includes(String(snapshot.get('status'))) &&
+		String(snapshot.get('authorId')) !== identity.uid
+	) {
+		const destination =
+			type === 'posts'
+				? `/post/${snapshot.id}`
+				: type === 'stories'
+					? `/story/${String(snapshot.get('slug') ?? '')}`
+					: '/notifications';
+		batch.set(
+			db.collection('notifications').doc(`content_hidden_${type}_${snapshot.id}_${body.status}`),
+			{
+				userId: String(snapshot.get('authorId')),
+				actorId: identity.uid,
+				actorName: 'Ban quản trị Vực Đêm',
+				actorAvatarUrl: null,
+				type: 'content_hidden',
+				targetType: type === 'posts' ? 'post' : type === 'stories' ? 'story' : 'comment',
+				targetId: snapshot.id,
+				message:
+					body.status === 'hidden'
+						? 'Nội dung của bạn đã bị ẩn tạm thời bởi Ban quản trị.'
+						: 'Nội dung của bạn đã bị gỡ bởi Ban quản trị.',
+				destination,
+				isRead: false,
+				createdAt: now,
+				readAt: null
+			}
+		);
+	}
+	await batch.commit();
 	return json({ ok: true, status: body.status });
 };

@@ -112,6 +112,7 @@ specs/
 │   ├── bookmarks.md
 │   ├── communities.md
 │   ├── notifications.md
+│   ├── system-announcements.md
 │   ├── reports.md
 │   └── indexes.md
 │

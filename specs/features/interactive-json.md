@@ -16,6 +16,8 @@ Switching to the visual editor after import immediately shows the imported Chara
 The JSON tab supports paste, a local `.json` file up to 2 MiB, validation, readable errors,
 formatting, a starter template, copying, reloading from current editor state, import and client-side
 download export. A manually edited JSON draft is not overwritten merely by switching tabs.
+Authors can also open the same full-screen phone simulation used by the visual editor directly from
+valid JSON. Preview uses the same normalized content as import and never changes the editor state.
 
 ## Root format
 

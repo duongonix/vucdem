@@ -22,7 +22,16 @@
 		story_update: 'đã đăng chương truyện mới',
 		mention: 'đã nhắc đến bạn',
 		content_approved: 'đã phê duyệt nội dung của bạn',
-		content_rejected: 'đã gửi phản hồi kiểm duyệt'
+		content_rejected: 'đã gửi phản hồi kiểm duyệt',
+		story_rating: 'đã đánh giá truyện của bạn',
+		story_status: 'đã cập nhật trạng thái truyện bạn theo dõi',
+		content_reported: 'đã ghi nhận báo cáo về nội dung của bạn',
+		content_hidden: 'đã điều chỉnh trạng thái nội dung của bạn',
+		system_announcement: 'đã gửi thông báo hệ thống',
+		reading_reminder: 'có chương mới trong truyện bạn đang đọc dở',
+		author_post: 'đã đăng bài viết mới',
+		author_story: 'đã đăng truyện mới',
+		author_chapter: 'đã đăng chương truyện mới'
 	};
 	function notificationCopy(notification: Notification): string {
 		if (notification.message) return notification.message;

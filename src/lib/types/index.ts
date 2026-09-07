@@ -18,7 +18,7 @@ export type {
 	ModerationReview,
 	ModerationStatus
 } from './moderation';
-export type { ReaderPreferences, ReadingProgress } from './reading';
+export type { ReaderPreferences, ReadingHistoryItem, ReadingProgress } from './reading';
 export type { Post, PostCategory, PostStatus } from './post';
 export type { PostCategoryDefinition } from './post-category';
 export type {

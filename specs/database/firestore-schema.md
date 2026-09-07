@@ -47,6 +47,7 @@ notifications/
 conversations/
 discussionMessages/
 reports/
+systemAnnouncements/
 ```
 
 Additional utility collections may exist where required for uniqueness or trusted coordination.
@@ -114,6 +115,9 @@ firestore
 │
 ├── reports/
 │   └── {reportId}
+│
+├── systemAnnouncements/
+│   └── {announcementId}
 │
 ├── postCategories/
 │   └── {categoryId}
