@@ -20,6 +20,7 @@
 	} from '$lib/validation/post';
 	import PostMediaUploader from './PostMediaUploader.svelte';
 	import PostTagEditor from './PostTagEditor.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 
 	let postId = $state('');
 	let title = $state('');
@@ -45,6 +46,9 @@
 
 	const meaningful = $derived(
 		Boolean(title.trim() || content.trim() || tags.length || thumbnail || images.length)
+	);
+	const moderationLocked = $derived(
+		moderationStatus === 'pending' && authStore.user?.role !== 'admin'
 	);
 
 	onMount(async () => {
@@ -103,7 +107,7 @@
 	}
 
 	async function persist(status: 'draft' | 'published') {
-		if (moderationStatus === 'pending') {
+		if (moderationLocked) {
 			errorMessage = 'Bài viết đang được xét duyệt và tạm thời không thể chỉnh sửa.';
 			return;
 		}
@@ -135,7 +139,10 @@
 			submissionVersion = post.submissionVersion;
 			dirty = false;
 			if (status === 'published') {
-				successMessage = 'Nội dung đã được gửi và đang chờ quản trị viên phê duyệt.';
+				successMessage =
+					authStore.user?.role === 'admin'
+						? 'Nội dung đã được xuất bản.'
+						: 'Nội dung đã được gửi và đang chờ quản trị viên phê duyệt.';
 			} else {
 				successMessage = 'Bản nháp đã được lưu.';
 			}
@@ -148,9 +155,7 @@
 </script>
 
 <div class="mx-auto w-full max-w-6xl py-5 sm:py-8">
-	{#if moderationStatus === 'pending'}<div
-			class="mb-5 border border-border-red bg-red-muted/15 p-4"
-		>
+	{#if moderationLocked}<div class="mb-5 border border-border-red bg-red-muted/15 p-4">
 			<p class="font-semibold text-red">ĐANG CHỜ PHÊ DUYỆT</p>
 			<p class="mt-1 text-sm text-text-secondary">
 				Nội dung sẽ được hiển thị công khai sau khi được quản trị viên phê duyệt. Bản gửi lần {submissionVersion}
@@ -177,8 +182,8 @@
 	</header>
 
 	<fieldset
-		disabled={moderationStatus === 'pending'}
-		class:opacity-75={moderationStatus === 'pending'}
+		disabled={moderationLocked}
+		class:opacity-75={moderationLocked}
 		class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]"
 	>
 		<section class="border border-border bg-surface p-5 sm:p-7">
@@ -256,16 +261,19 @@
 					type="button"
 					variant="outline"
 					onclick={() => persist('draft')}
-					disabled={pending || moderationStatus === 'pending'}
-					><Save class="size-4" /> Lưu bản nháp</Button
+					disabled={pending || moderationLocked}><Save class="size-4" /> Lưu bản nháp</Button
 				><Button
 					type="button"
 					onclick={() => persist('published')}
-					disabled={pending || moderationStatus === 'pending'}
+					disabled={pending || moderationLocked}
 					>{#if pending}<LoaderCircle class="size-4 animate-spin" />{:else}<Send
 							class="size-4"
 						/>{/if}
-					{moderationStatus === 'rejected' ? 'Gửi phê duyệt lại' : 'Gửi phê duyệt'}</Button
+					{authStore.user?.role === 'admin'
+						? 'Xuất bản'
+						: moderationStatus === 'rejected'
+							? 'Gửi phê duyệt lại'
+							: 'Gửi phê duyệt'}</Button
 				>
 			</div>
 		</aside>

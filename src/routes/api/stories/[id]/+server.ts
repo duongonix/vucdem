@@ -5,6 +5,7 @@ import { serializeStory } from '$lib/server/stories';
 import { storyMetadataSchema, validatePublishableStory } from '$lib/validation/story';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
+import { notifyAuthorPublicationFollowers } from '$lib/server/publication-notifications';
 const publicStatuses = ['ongoing', 'completed', 'hiatus'];
 function id(value?: string) {
 	if (!value || value.includes('/')) error(400, 'ID truyện không hợp lệ.');
@@ -34,12 +35,15 @@ export const PATCH: RequestHandler = async (event) => {
 	const db = getFirebaseAdminDb();
 	const storyRef = db.collection('stories').doc(storyId);
 	const userRef = db.collection('users').doc(identity.uid);
+	let publication: { slug: string; version: number } | null = null;
 	await db.runTransaction(async (transaction) => {
 		const [story, user] = await Promise.all([transaction.get(storyRef), transaction.get(userRef)]);
 		if (!story.exists) error(404, 'Không tìm thấy truyện.');
+		if (!user.exists || user.get('status') !== 'active')
+			error(403, 'Tài khoản không thể cập nhật truyện.');
 		if (story.get('authorId') !== identity.uid) error(403, 'Bạn không thể sửa truyện này.');
 		if (story.get('status') === 'removed') error(409, 'Truyện đã bị gỡ.');
-		if (!remove && story.get('moderationStatus') === 'pending')
+		if (!remove && story.get('moderationStatus') === 'pending' && user.get('role') !== 'admin')
 			error(409, 'Truyện đang được xét duyệt. Hãy chờ quản trị viên phản hồi.');
 		const current = story.get('status') as string;
 		const format = story.get('format') === 'short' ? 'short' : 'serial';
@@ -77,45 +81,78 @@ export const PATCH: RequestHandler = async (event) => {
 			if (problems.length) error(400, problems[0]);
 		}
 		const wasPublic = publicStatuses.includes(current);
+		const autoApproved = submitted && user.get('role') === 'admin';
+		const version = Number(story.get('submissionVersion') ?? 0) + (submitted ? 1 : 0);
+		if (autoApproved && !wasPublic) publication = { slug: String(story.get('slug')), version };
 		transaction.update(storyRef, {
 			title: parsed.data.title,
 			description: parsed.data.description,
 			cover: parsed.data.cover,
 			tags: parsed.data.tags,
-			status: 'draft',
-			moderationStatus: submitted ? 'pending' : 'not_submitted',
-			submissionVersion: Number(story.get('submissionVersion') ?? 0) + (submitted ? 1 : 0),
+			status: autoApproved ? requested : 'draft',
+			moderationStatus: autoApproved ? 'approved' : submitted ? 'pending' : 'not_submitted',
+			submissionVersion: version,
 			submittedAt: submitted ? now : (story.get('submittedAt') ?? null),
-			reviewedAt: submitted ? null : (story.get('reviewedAt') ?? null),
-			reviewedBy: submitted ? null : (story.get('reviewedBy') ?? null),
+			reviewedAt: autoApproved ? now : submitted ? null : (story.get('reviewedAt') ?? null),
+			reviewedBy: autoApproved
+				? identity.uid
+				: submitted
+					? null
+					: (story.get('reviewedBy') ?? null),
 			rejectionReason: submitted ? null : (story.get('rejectionReason') ?? null),
-			requestedPublicationStatus: submitted ? requested : null,
-			previousPublicationStatus: submitted && wasPublic ? current : null,
+			requestedPublicationStatus: submitted && !autoApproved ? requested : null,
+			previousPublicationStatus: submitted && wasPublic && !autoApproved ? current : null,
+			publishedAt: autoApproved ? (story.get('publishedAt') ?? now) : null,
 			updatedAt: now,
-			...(wasPublic ? { isPinned: false, pinnedAt: null, pinnedBy: null } : {})
+			...(wasPublic && !autoApproved ? { isPinned: false, pinnedAt: null, pinnedBy: null } : {})
 		});
+		if (autoApproved)
+			transaction.create(storyRef.collection('moderationReviews').doc(), {
+				decision: 'approved',
+				reason: null,
+				reviewerId: identity.uid,
+				reviewerName: String(user.get('displayName') ?? user.get('username') ?? 'Quản trị viên'),
+				submissionVersion: version,
+				createdAt: now
+			});
 		if (format === 'short') {
 			transaction.update(storyRef.collection('chapters').doc('short-story'), {
 				title: parsed.data.title,
 				...(submitted
 					? {
-							status: 'draft',
-							moderationStatus: 'pending',
-							submissionVersion: Number(story.get('submissionVersion') ?? 0) + 1,
+							status: autoApproved ? 'published' : 'draft',
+							moderationStatus: autoApproved ? 'approved' : 'pending',
+							submissionVersion: version,
 							submittedAt: now,
-							reviewedAt: null,
-							reviewedBy: null,
-							rejectionReason: null
+							reviewedAt: autoApproved ? now : null,
+							reviewedBy: autoApproved ? identity.uid : null,
+							rejectionReason: null,
+							...(autoApproved ? { publishedAt: story.get('publishedAt') ?? now } : {})
 						}
 					: {}),
 				updatedAt: now
 			});
 		}
-		if (wasPublic)
+		if (autoApproved && !wasPublic)
+			transaction.update(userRef, {
+				storyCount: FieldValue.increment(1),
+				updatedAt: now
+			});
+		else if (!autoApproved && wasPublic)
 			transaction.update(userRef, {
 				storyCount: Math.max(0, Number(user.get('storyCount') ?? 0) - 1),
 				updatedAt: now
 			});
 	});
+	const published = publication as { slug: string; version: number } | null;
+	if (published && parsed?.success)
+		await notifyAuthorPublicationFollowers(db, {
+			authorId: identity.uid,
+			contentId: storyId,
+			title: parsed.data.title,
+			destination: `/story/${published.slug}`,
+			type: 'author_story',
+			submissionVersion: published.version
+		});
 	return json({ story: serializeStory(await storyRef.get()) });
 };

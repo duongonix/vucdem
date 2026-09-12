@@ -10,6 +10,7 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import { assertPostMediaMetadata } from '$lib/server/media-authorization';
 import { assertActivePostCategory } from '$lib/server/post-categories';
+import { notifyAuthorPublicationFollowers } from '$lib/server/publication-notifications';
 
 export const POST: RequestHandler = async (event) => {
 	const identity = await requireFirebaseUser(event);
@@ -28,6 +29,7 @@ export const POST: RequestHandler = async (event) => {
 	const db = getFirebaseAdminDb();
 	const userRef = db.collection('users').doc(identity.uid);
 	const postRef = db.collection('posts').doc(parsed.data.id);
+	let publishedByAdmin = false;
 	await db.runTransaction(async (transaction) => {
 		const communityRef = parsed.data.communityId
 			? db.collection('communities').doc(parsed.data.communityId)
@@ -51,6 +53,8 @@ export const POST: RequestHandler = async (event) => {
 		const avatar = user.get('avatar') as { url?: unknown } | null;
 		const timestamp = FieldValue.serverTimestamp();
 		const submitted = parsed.data.status === 'published';
+		const autoApproved = submitted && user.get('role') === 'admin';
+		publishedByAdmin = autoApproved;
 		transaction.create(postRef, {
 			authorId: identity.uid,
 			authorName: user.get('displayName'),
@@ -68,21 +72,49 @@ export const POST: RequestHandler = async (event) => {
 			voteScore: 0,
 			commentCount: 0,
 			viewCount: 0,
-			status: 'draft',
-			moderationStatus: submitted ? 'pending' : 'not_submitted',
+			status: autoApproved ? 'published' : 'draft',
+			moderationStatus: autoApproved ? 'approved' : submitted ? 'pending' : 'not_submitted',
 			submissionVersion: submitted ? 1 : 0,
 			submittedAt: submitted ? timestamp : null,
-			reviewedAt: null,
-			reviewedBy: null,
+			reviewedAt: autoApproved ? timestamp : null,
+			reviewedBy: autoApproved ? identity.uid : null,
 			rejectionReason: null,
 			createdAt: timestamp,
 			updatedAt: timestamp,
-			publishedAt: null,
+			publishedAt: autoApproved ? timestamp : null,
 			isPinned: false,
 			pinnedAt: null,
 			pinnedBy: null
 		});
+		if (autoApproved) {
+			transaction.create(postRef.collection('moderationReviews').doc(), {
+				decision: 'approved',
+				reason: null,
+				reviewerId: identity.uid,
+				reviewerName: String(user.get('displayName') ?? user.get('username') ?? 'Quản trị viên'),
+				submissionVersion: 1,
+				createdAt: timestamp
+			});
+			transaction.update(userRef, {
+				postCount: FieldValue.increment(1),
+				updatedAt: timestamp
+			});
+			if (communityRef)
+				transaction.update(communityRef, {
+					postCount: FieldValue.increment(1),
+					updatedAt: timestamp
+				});
+		}
 	});
+	if (publishedByAdmin)
+		await notifyAuthorPublicationFollowers(db, {
+			authorId: identity.uid,
+			contentId: postRef.id,
+			title: parsed.data.title,
+			destination: `/post/${postRef.id}`,
+			type: 'author_post',
+			submissionVersion: 1
+		});
 	return json({ post: serializePost(await postRef.get()) }, { status: 201 });
 };
 

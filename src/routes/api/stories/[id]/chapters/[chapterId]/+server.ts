@@ -6,6 +6,7 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { FieldValue } from 'firebase-admin/firestore';
 import { assertCloudinaryAudioMetadata } from '$lib/server/media-authorization';
 import { assertInteractiveMedia, writeInteractiveContent } from '$lib/server/interactive-stories';
+import { notifyChapterPublicationFollowers } from '$lib/server/publication-notifications';
 
 async function context(event: Parameters<RequestHandler>[0]) {
 	const db = getFirebaseAdminDb();
@@ -43,14 +44,18 @@ export const PATCH: RequestHandler = async (event) => {
 		);
 	if (parsed.data.contentFormat === 'interactive')
 		assertInteractiveMedia(storyRef.id, chapterRef.id, parsed.data.interactive);
+	let publication: { storySlug: string; chapterNumber: number } | null = null;
 	await db.runTransaction(async (transaction) => {
-		const [story, chapter] = await Promise.all([
+		const [story, chapter, user] = await Promise.all([
 			transaction.get(storyRef),
-			transaction.get(chapterRef)
+			transaction.get(chapterRef),
+			transaction.get(db.collection('users').doc(identity.uid))
 		]);
 		if (!story.exists || story.get('authorId') !== identity.uid) error(403);
+		if (!user.exists || user.get('status') !== 'active')
+			error(403, 'Tài khoản không thể cập nhật chương.');
 		if (!chapter.exists || chapter.get('status') === 'removed') error(404);
-		if (chapter.get('moderationStatus') === 'pending')
+		if (chapter.get('moderationStatus') === 'pending' && user.get('role') !== 'admin')
 			error(409, 'Chương đang được xét duyệt. Hãy chờ quản trị viên phản hồi.');
 		if (
 			story.get('format') === 'short' &&
@@ -60,6 +65,13 @@ export const PATCH: RequestHandler = async (event) => {
 			error(409, 'Không thể chuyển nội dung của truyện ngắn đã xuất bản về bản nháp.');
 		const now = FieldValue.serverTimestamp();
 		const submitted = parsed.data.status === 'published';
+		const autoApproved = submitted && user.get('role') === 'admin';
+		const version = Number(chapter.get('submissionVersion') ?? 0) + (submitted ? 1 : 0);
+		if (autoApproved && chapter.get('status') !== 'published')
+			publication = {
+				storySlug: String(story.get('slug')),
+				chapterNumber: Number(chapter.get('chapterNumber') ?? 1)
+			};
 		transaction.update(chapterRef, {
 			title: parsed.data.title,
 			content: parsed.data.content,
@@ -80,16 +92,29 @@ export const PATCH: RequestHandler = async (event) => {
 					: null,
 			interactiveEventCount:
 				parsed.data.contentFormat === 'interactive' ? parsed.data.interactive.events.length : 0,
-			status: 'draft',
-			moderationStatus: submitted ? 'pending' : 'not_submitted',
-			submissionVersion: Number(chapter.get('submissionVersion') ?? 0) + (submitted ? 1 : 0),
+			status: autoApproved ? 'published' : 'draft',
+			moderationStatus: autoApproved ? 'approved' : submitted ? 'pending' : 'not_submitted',
+			submissionVersion: version,
 			submittedAt: submitted ? now : (chapter.get('submittedAt') ?? null),
-			reviewedAt: submitted ? null : (chapter.get('reviewedAt') ?? null),
-			reviewedBy: submitted ? null : (chapter.get('reviewedBy') ?? null),
+			reviewedAt: autoApproved ? now : submitted ? null : (chapter.get('reviewedAt') ?? null),
+			reviewedBy: autoApproved
+				? identity.uid
+				: submitted
+					? null
+					: (chapter.get('reviewedBy') ?? null),
 			rejectionReason: submitted ? null : (chapter.get('rejectionReason') ?? null),
 			updatedAt: now,
-			publishedAt: chapter.get('publishedAt') ?? null
+			publishedAt: autoApproved ? (chapter.get('publishedAt') ?? now) : null
 		});
+		if (autoApproved)
+			transaction.create(chapterRef.collection('moderationReviews').doc(), {
+				decision: 'approved',
+				reason: null,
+				reviewerId: identity.uid,
+				reviewerName: String(user.get('displayName') ?? user.get('username') ?? 'Quản trị viên'),
+				submissionVersion: version,
+				createdAt: now
+			});
 		if (parsed.data.contentFormat === 'interactive')
 			writeInteractiveContent(
 				transaction,
@@ -105,6 +130,15 @@ export const PATCH: RequestHandler = async (event) => {
 			updatedAt: now
 		});
 	});
+	const published = publication as { storySlug: string; chapterNumber: number } | null;
+	if (published)
+		await notifyChapterPublicationFollowers(db, {
+			authorId: identity.uid,
+			storyId: storyRef.id,
+			storySlug: published.storySlug,
+			chapterId: chapterRef.id,
+			chapterNumber: published.chapterNumber
+		});
 	return json({ chapter: serializeChapter(await chapterRef.get()) });
 };
 

@@ -17,6 +17,7 @@
 	import StoryCoverUploader from './StoryCoverUploader.svelte';
 	import StoryTagEditor from './StoryTagEditor.svelte';
 	import ChapterEditor from './ChapterEditor.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 	let { storyId }: { storyId: string } = $props();
 	let story = $state<Story | null>(null);
 	let chapters = $state<Chapter[]>([]);
@@ -24,6 +25,8 @@
 	let loading = $state(true);
 	let pending = $state(false);
 	let errorMessage = $state('');
+	const isAdmin = $derived(authStore.user?.role === 'admin');
+	const storyModerationLocked = $derived(story?.moderationStatus === 'pending' && !isAdmin);
 	onMount(async () => {
 		try {
 			[story, chapters] = await Promise.all([getStory(storyId), listChapters(storyId)]);
@@ -73,7 +76,7 @@
 			<LoaderCircle class="size-4 animate-spin" /> Đang mở bản thảo…
 		</p>{:else if !story}<p role="alert" class="text-error">
 			{errorMessage || 'Không tìm thấy truyện.'}
-		</p>{:else}{#if story.moderationStatus === 'pending'}<div
+		</p>{:else}{#if storyModerationLocked}<div
 				class="mb-5 border border-border-red bg-red-muted/15 p-4"
 			>
 				<p class="font-semibold text-red">ĐANG CHỜ PHÊ DUYỆT</p>
@@ -130,8 +133,7 @@
 						{#if story.format === 'serial'}<Button
 								size="sm"
 								onclick={() => (editing = null)}
-								disabled={story.moderationStatus === 'pending'}
-								><Plus class="size-4" /> Thêm chương</Button
+								disabled={storyModerationLocked}><Plus class="size-4" /> Thêm chương</Button
 							>{/if}
 					</div>
 					{#if chapters.length}{#each chapters as chapter (chapter.id)}<article
@@ -164,8 +166,8 @@
 								</div>
 								<button
 									onclick={() => (editing = chapter)}
-									disabled={chapter.moderationStatus === 'pending' ||
-										story.moderationStatus === 'pending'}
+									disabled={(chapter.moderationStatus === 'pending' && !isAdmin) ||
+										storyModerationLocked}
 									class="p-2 text-text-muted hover:text-text"
 									aria-label={story.format === 'short' ? 'Sửa nội dung truyện' : 'Sửa chương'}
 									><Edit3 class="size-4" /></button
@@ -181,8 +183,8 @@
 						</div>{/if}
 				</section>
 				<fieldset
-					disabled={story.moderationStatus === 'pending'}
-					class:opacity-70={story.moderationStatus === 'pending'}
+					disabled={storyModerationLocked}
+					class:opacity-70={storyModerationLocked}
 					class="space-y-5 border border-border bg-surface p-5"
 				>
 					<StoryCoverUploader storyId={story.id} bind:cover={story.cover} /><label class="block"
@@ -207,12 +209,14 @@
 					>{#if errorMessage}<p class="text-sm text-error">{errorMessage}</p>{/if}<Button
 						class="w-full"
 						onclick={saveStory}
-						disabled={pending || story.moderationStatus === 'pending'}
+						disabled={pending || storyModerationLocked}
 						>{pending
 							? 'Đang lưu…'
-							: story.moderationStatus === 'rejected'
-								? 'Gửi phê duyệt lại'
-								: 'Lưu / gửi phê duyệt'}</Button
+							: authStore.user?.role === 'admin'
+								? 'Lưu / xuất bản'
+								: story.moderationStatus === 'rejected'
+									? 'Gửi phê duyệt lại'
+									: 'Lưu / gửi phê duyệt'}</Button
 					>
 				</fieldset>
 			</div>{/if}{/if}

@@ -7,6 +7,10 @@
 > and `pinnedBy: string | null`. They default to `false`/`null`, may only be changed through
 > the Admin server API, and only a public Story may be pinned.
 
+An active Admin author may publish their own Story metadata, short Story content, and serialized
+Chapters immediately. Trusted endpoints record this as approved self-publication and maintain the
+normal publication timestamps, counters, and follower notifications.
+
 > Interactive format extension: Story `contentFormat` also accepts `interactive`. A serial Story containing chapters with different formats remains `mixed`. See `specs/database/interactive-stories.md`.
 
 This document defines the canonical Firestore schema for vucdem Stories.

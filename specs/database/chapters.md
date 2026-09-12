@@ -4,6 +4,10 @@
 > `specs/features/content-approval.md`. Author publication submits it for review; only approval
 > changes its publication status to `published`.
 
+An active Admin author may publish a Chapter immediately through the trusted endpoint. The server
+records the Chapter as approved, sets trusted review/publication timestamps, and still emits normal
+Story- and author-follower notifications.
+
 > Interactive format extension: Chapter `contentFormat` accepts `interactive`; structured content is stored in the chapter's `interactiveEvents` subcollection and Story-level `characters` subcollection. See `specs/database/interactive-stories.md`.
 
 ## Purpose and path

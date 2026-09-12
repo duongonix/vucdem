@@ -2,6 +2,8 @@
 
 All new user-authored Posts, short Stories, Story metadata and serialized Chapters require Admin
 approval before becoming public. Publication state (`status`) remains separate from review state.
+Content authored by an active persisted Admin is the explicit exception: choosing publication is
+trusted as an immediate self-approval and does not enter the moderation queue.
 
 ## State
 
@@ -29,3 +31,8 @@ the target is still pending at the expected submission version, appends history,
 state, updates counters, and creates an author Notification. Rejection requires a nonblank reason.
 Public APIs continue to enforce publication `status`, so pending/rejected documents cannot be read
 by another User or Guest even when their ID or slug is known.
+
+Admin self-publication is enforced only by trusted SvelteKit endpoints after reading the persisted
+User role. It writes `moderationStatus = approved`, records the Admin as `reviewedBy`, sets trusted
+publication timestamps, appends an approved moderation-review audit record, and updates the same
+counters and follower notifications as normal approval.
